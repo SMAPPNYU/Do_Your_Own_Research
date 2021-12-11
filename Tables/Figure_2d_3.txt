@@ -1,0 +1,28 @@
+
+\begin{table}[!htbp]
+\caption{Results from OLS Regression Results Presented in Figure 2d (25-50 Percentage Quartile of News Quality)}
+\begin{center}
+\begin{tabular}{l c c c}
+\hline
+ & Categorical Measure & 4-Point Ordinal Scale & 7-Point Ordinal Scale \\
+\hline
+(Intercept)            & $0.2313^{**}$  & $3.5066^{***}$ & $2.4147^{***}$ \\
+                       & $(0.0725)$     & $(0.2303)$     & $(0.1148)$     \\
+Treatment              & $0.1342^{*}$   & $0.2251$       & $0.1399$       \\
+                       & $(0.0545)$     & $(0.1588)$     & $(0.0846)$     \\
+Age                    & $0.3050^{***}$ & $1.2276^{***}$ & $0.6499^{***}$ \\
+                       & $(0.0382)$     & $(0.1619)$     & $(0.0979)$     \\
+Ideological Congruence & $0.0002$       & $0.0069$       & $0.0031$       \\
+                       & $(0.0011)$     & $(0.0044)$     & $(0.0020)$     \\
+Education              & $-0.0069$      & $-0.0648$      & $-0.0979$      \\
+                       & $(0.0315)$     & $(0.1075)$     & $(0.0760)$     \\
+Gender                 & $0.0050$       & $-0.0344$      & $-0.0344$      \\
+                       & $(0.0201)$     & $(0.0670)$     & $(0.0280)$     \\
+Income                 & $-0.0088$      & $-0.0557$      & $-0.0500$      \\
+                       & $(0.0218)$     & $(0.0875)$     & $(0.0439)$     \\
+\hline
+\multicolumn{4}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
+\end{tabular}
+\label{table}
+\end{center}
+\end{table}

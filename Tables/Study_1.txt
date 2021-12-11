@@ -1,0 +1,28 @@
+
+\begin{table}[!htbp]
+\caption{Results from OLS Regression Results Presented in Figure 1}
+\begin{center}
+\begin{tabular}{l c c}
+\hline
+ & Categorical Measure & 7-Point Ordinal Scale \\
+\hline
+(Intercept)            & $0.3083^{***}$  & $3.8091^{***}$  \\
+                       & $(0.0520)$      & $(0.2260)$      \\
+Treatment              & $0.0568^{*}$    & $0.1615$        \\
+                       & $(0.0242)$      & $(0.1058)$      \\
+Age                    & $-0.0029^{***}$ & $-0.0110^{***}$ \\
+                       & $(0.0007)$      & $(0.0024)$      \\
+Ideological Congruence & $0.1737^{***}$  & $0.9850^{***}$  \\
+                       & $(0.0423)$      & $(0.1579)$      \\
+Education              & $-0.0066$       & $-0.0130$       \\
+                       & $(0.0117)$      & $(0.0494)$      \\
+Gender                 & $-0.0329$       & $-0.0165$       \\
+                       & $(0.0225)$      & $(0.0912)$      \\
+Income                 & $-0.0021$       & $0.0088$        \\
+                       & $(0.0099)$      & $(0.0347)$      \\
+\hline
+\multicolumn{3}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
+\end{tabular}
+\label{table}
+\end{center}
+\end{table}

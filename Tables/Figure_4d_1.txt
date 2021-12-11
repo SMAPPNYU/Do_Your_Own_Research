@@ -1,0 +1,26 @@
+
+\begin{table}[!htbp]
+\caption{Results from OLS Regression Results Presented in Figure 4d (Some Very Unreliable News Returned)}
+\begin{center}
+\begin{tabular}{l c c c}
+\hline
+ & Categorical Measure & 4-Point Ordinal Scale & 7-Point Ordinal Scale \\
+\hline
+(Intercept) & $0.3353^{***}$ & $2.6539^{***}$ & $3.9568^{***}$ \\
+            & $(0.0950)$     & $(0.1654)$     & $(0.3063)$     \\
+Treatment   & $0.0714^{*}$   & $0.0383$       & $0.0626$       \\
+            & $(0.0304)$     & $(0.0871)$     & $(0.1983)$     \\
+Age         & $0.0009$       & $0.0058^{*}$   & $0.0114$       \\
+            & $(0.0015)$     & $(0.0029)$     & $(0.0068)$     \\
+Gender      & $-0.0044$      & $-0.1272$      & $-0.1318$      \\
+            & $(0.0446)$     & $(0.1159)$     & $(0.1891)$     \\
+Education   & $0.0040$       & $-0.0396$      & $-0.0611$      \\
+            & $(0.0229)$     & $(0.0339)$     & $(0.0755)$     \\
+Income      & $-0.0058$      & $-0.0514$      & $-0.0213$      \\
+            & $(0.0298)$     & $(0.0534)$     & $(0.1065)$     \\
+\hline
+\multicolumn{4}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
+\end{tabular}
+\label{table}
+\end{center}
+\end{table}
