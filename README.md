@@ -22,10 +22,7 @@ In recent years, to combat phenomena associated with democratic dysfunction link
 }
 
 ## Instructions:
-
-(1) Open the R Project and make sure the the two files of code are loaded:
--Main_text_Figures.R
--Supplemementary_Materials.R
+Open the R Project and make sure the the two files of code are loaded: Main_text_Figures.R, Supplemementary_Materials.R
 
 There are four directories:
 
