@@ -1,0 +1,19 @@
+% latex table generated in R 3.6.1 by xtable 1.8-4 package
+% Wed Apr 20 18:28:55 2022
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{3cm}||p{3cm}|p{3cm}|p{3cm}|}
+  \hline
+Demographic & Average (Complier) & Average (Non-Complier) & Difference \\ 
+  \hline
+Education & 3.43 & 3.67 & -0.24 \\ 
+  Age & 36.56 & 39.11 & -2.55 \\ 
+  Gender & 0.41 & 0.52 & -0.11* \\ 
+  Income & 1.73 & 1.75 & -0.02 \\ 
+  Ideology & -0.61 & 0.23 & -0.84*** \\ 
+  Digital Literacy & 55.14 & 49.03 & 6.11*** \\ 
+   \hline 
+\multicolumn{4}{l}{\textsuperscript{***}$p<0.001$, \textsuperscript{**}$p<0.01$, \textsuperscript{*}$p<0.05$} \hline
+\end{tabular}
+\end{table}
+

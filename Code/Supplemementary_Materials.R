@@ -27,7 +27,7 @@
 #Figure_4d_1.txt
 #Figure_4d_2.txt
 
-#   FIGURES   #
+# FIGURES Out:
 #All_4_Studies_ROBUST.png
 #Study_5_1_ROBUST.png
 #Coefs_CIs_ROBUST.png
@@ -52,11 +52,32 @@ library(stargazer)
 library(xtable)
 library(irr)
 library(texreg)
+library(multiwayvcov)
+library(miceadds)
+library(mice)
+library(miceadds)
+library(plm)
+library(fixest)
+library(broom)
 
-
+#Set dictionary for fixest objects:
+setFixest_dict(c(Likert_Evaluation = "7-Point Ordinal Scale",
+                 Susc_FN = "Categorical (Rated as True)",
+                 True_Dummy = "Categorical (Rated as True)",
+                 Treat_Search = "Treatment (Search)",
+                 Treatment = "Treatment (Search)",
+                 Four_Ordinal = "4-Point Ordinal Scale",
+                 Seven_Ordinal = "7-Point Ordinal Scale",
+                 Dummy_Congruence = "Ideological Congruence",
+                 Ideo_Congruence = "Ideological Congruence",
+                 Education_Score = "Education",
+                 Gender = "Gender (Female dummy)",
+                 Income_Score = "Income",
+                 Article_day = "Article",
+                 Dig_Lit_Score = "Digital Literacy",
+                 ResponseId = "Respondent"))
 
 #Create Article Metadata dataframe:
-
 #Pull in this data:
 Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
 Study_2_Ideo <- read.csv('./Data/Study_2_Respondent_Ideo.csv')
@@ -65,7 +86,7 @@ Study_2_Ideo <- read.csv('./Data/Study_2_Respondent_Ideo.csv')
 Data_Bef_Aft$ResponseId <- as.character(Data_Bef_Aft$ResponseId)
 Study_2_Ideo$ResponseId <- as.character(Study_2_Ideo$ResponseId)
 
-#Unqiue values:
+#Only keep unique values:
 Study_2_Ideo <- unique(Study_2_Ideo)
 #Merge:
 Data_Bef_Aft <- merge(Data_Bef_Aft,Study_2_Ideo,by='ResponseId')
@@ -75,105 +96,102 @@ Data_Bef_Aft <- Data_Bef_Aft %>% mutate(Dummy_Ideology = ifelse(Ideology_Score >
 Data_Bef_Aft <- Data_Bef_Aft %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
 
 #Create Article Lean Data using responses:
-Article_Data <- Data_Bef_Aft %>% mutate(Article_Lean = ifelse(Dummy_Ideology == 'Conservative' & Dummy_Congruence == 1,'Conservative','None'))
+Article_data <- Data_Bef_Aft %>% mutate(Article_Lean = ifelse(Dummy_Ideology == 'Conservative' & Dummy_Congruence == 1,'Conservative','None'))
 Article_data <- Article_data %>% mutate(Article_Lean = ifelse(Dummy_Ideology == 'Liberal' & Dummy_Congruence == 1,'Liberal',Article_Lean))
 
-#Select variables:
+#Select only article variables:
 Article_data <- Article_data %>% select(Article_day,Article_Lean)
 
 #Pull unique articles and remove NAs:
 Article_data <- unique(Article_data)
 Article_data <- na.omit(Article_data)
 
-
 #Study 1:
 #Pull in this data: Search Experiment 1: Study 1:
-Misl_False_Search <- read.csv('./Data/Search_Exp_Misl_False.csv')
+Study_1_df <- read.csv('./Data/Search_Exp_Misl_False.csv')
 #Select variables of interest:
-Model_Data_7 <- Misl_False_Search %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
+Study_1_df <- Study_1_df %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
 #Remove NA values:
-Model_Data_7 = na.omit(Model_Data_7)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
+Study_1_df <- na.omit(Study_1_df)
+Study_1_df$Gender <- ifelse(Study_1_df$Gender == 'Female',1,0)
 
 #Run OLS Model with clustered standard errors:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+lin_results_fit_1_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 <- coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_1_1 <- confint(lin_results_fit_1_1)
 
 #Run OLS Model with clustered standard errors:
-fit_2_2 = glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+lin_results_fit_1_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 <- coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_1_2 <- confint(lin_results_fit_1_2)
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
+fit_1_1 <- glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_1_df)
+fit_1_2 <- glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_1_df)
 
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
 
-#Write Table
-texreg(list(lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 1',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure", "7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#F-statistic
+glm.0 <- glm(Susc_FN ~ 1,data=Study_1_df)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
+
+#F-statistic
+glm.0 <- glm(Likert_Evaluation ~ 1,data=Study_1_df)
+Results <- anova(fit_1_2, glm.0, test="F")
+F_Tab_1_2 <- Results$F[2]
+
+
+
+library(fixest)
+
+#Write Table:
+etable(lin_results_fit_1_1,lin_results_fit_1_2, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Study_1.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 1a and 1b (Study 1)')
 
 #Study 2:
-
-
 #Pull in this data:
 Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
 
 #Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
+Study_2_df <- Data_Bef_Aft %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
 #Remove NA values:
-Model_Data_7 <- na.omit(Model_Data_7)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
+Study_2_df <- na.omit(Study_2_df)
+Study_2_df$Gender <- ifelse(Study_2_df$Gender == 'Female',1,0)
 
 #Run OLS Model with clustered standard errors:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+lin_results_fit_2_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 <- coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_2_1 <- confint(lin_results_fit_2_1)
 
 #Run OLS Model with clustered standard errors:
-fit_2_2 = glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+lin_results_fit_2_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 <- coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_2_2 <- confint(lin_results_fit_2_2)
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
 
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
+fit_1_1 <- glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_2_df)
+fit_1_2 <- glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_2_df)
 
-#Write Table
-texreg(list(lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure", "7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#F-statistic
+glm.0 <- glm(Susc_FN ~ 1,data=Study_2_df)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
+
+#F-statistic
+glm.0 <- glm(Likert_Evaluation ~ 1,data=Study_2_df)
+Results <- anova(fit_1_2, glm.0, test="F")
+F_Tab_1_2 <- Results$F[2]
+
+
+#Write Table:
+etable(lin_results_fit_2_1,lin_results_fit_2_2, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Study_2.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 1a and 1b (Study 2)')
+
 
 #Study 3 Analysis:
 #Load Data:
@@ -235,109 +253,117 @@ After_Evaluation$Treatment <- 1
 Before_Evaluation$Treatment <- 0
 
 #merge them together
-Latency_Search <- rbind(Before_Evaluation,After_Evaluation)
+Study_3_df <- rbind(Before_Evaluation,After_Evaluation)
 
 #Create Ideological Congruence data:
-Model_Data_7 <- Latency_Search
-Model_Data_7 <- Model_Data_7 %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
-Model_Data_7 <- Model_Data_7 %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
-Model_Data_7 <- merge(Model_Data_7,Article_data,all=T)
-Model_Data_7$Article_Lean <- ifelse(Model_Data_7$Article_Lean == 'None','Neutral',Model_Data_7$Article_Lean)
-Model_Data_7 <- Model_Data_7 %>% mutate(Dummy_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
-Model_Data_7$Susc_FN <- Model_Data_7$True_Dummy
-Model_Data_7$Treat_Search <- Model_Data_7$Treatment
+Study_3_df <- Study_3_df %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
+Study_3_df <- Study_3_df %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
+Study_3_df <- merge(Study_3_df,Article_data,all=T)
+Study_3_df$Article_Lean <- ifelse(Study_3_df$Article_Lean == 'None','Neutral',Study_3_df$Article_Lean)
+Study_3_df <- Study_3_df %>% mutate(Dummy_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
+Study_3_df$Susc_FN <- Study_3_df$True_Dummy
+Study_3_df$Treat_Search <- Study_3_df$Treatment
 
-#Run OLS Model with clustered standard errors:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
-#Produce confidence intervals with clustered standard errors:
-CI_2_1 <- coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+Study_3_df <- na.omit(Study_3_df)
 
-#Run OLS Model with clustered standard errors:
-fit_2_2 = glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 <- coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+#Run linear regression and produce coefficient values:
+lin_results_fit_3_1 = feols(True_Dummy ~ Treatment + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
+#Produce confidence intervals using clustered standard errors:
+CI_3_1 <- confint(lin_results_fit_3_1)
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
+#Run linear regression and produce coefficient values:
+lin_results_fit_3_2 = feols(Likert_Evaluation ~ Treatment + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
+#Produce confidence intervals using clustered standard errors:
+CI_3_2 <- confint(lin_results_fit_3_2)
 
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
+fit_1_1 <- glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_3_df)
+fit_1_2 <- glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_3_df)
 
-#Write Table
-texreg(list(lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure", "7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#F-statistic
+glm.0 <- glm(Susc_FN ~ 1,data=Study_3_df)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
+
+#F-statistic
+glm.0 <- glm(Likert_Evaluation ~ 1,data=Study_3_df)
+Results <- anova(fit_1_2, glm.0, test="F")
+F_Tab_1_2 <- Results$F[2]
+
+etable(lin_results_fit_3_1,lin_results_fit_3_2, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Study_3.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 1a and 1b (Study 3)')
 
 #Study 4:
 #Pull in data
-Data_Bef_Aft_Covid <- read.csv('./Data/Experiment_2_Study_2_Misl_False.csv')
+Study_4_df <- read.csv('./Data/Experiment_2_Study_2_Misl_False.csv')
 
 #Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft_Covid %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
+Study_4_df <- Study_4_df %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
 #Remove NA values:
-Model_Data_7 <- na.omit(Model_Data_7)
+Study_4_df <- na.omit(Study_4_df)
 
 #Create control dataframe:
-Study_4_Data <- Model_Data_7 %>% filter(Treat_Search == 0)
+Study_4_Data <- Study_4_df %>% filter(Treat_Search == 0)
 
 #Create Gender variable:
-Model_Data_7$Gender <- as.character(Model_Data_7$Gender)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
+Study_4_df$Gender <- as.character(Study_4_df$Gender)
+Study_4_df$Gender <- ifelse(Study_4_df$Gender == 'Female',1,0)
 
 #Run OLS Model with clustered standard errors:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+lin_results_fit_4_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 <- coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_4_1 <- confint(lin_results_fit_4_1)
 
 #Run OLS Model with clustered standard errors:
-fit_2_2 = glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Model_Data_7)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+lin_results_fit_4_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 <- coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_4_2 <- confint(lin_results_fit_4_2)
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
+fit_1_1 <- glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_4_df)
+fit_1_2 <- glm(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = Study_4_df)
 
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
+#F-statistic
+glm.0 <- glm(Susc_FN ~ 1,data=Study_4_df)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
 
-#Write Table
-texreg(list(lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure", "7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#F-statistic
+glm.0 <- glm(Likert_Evaluation ~ 1,data=Study_4_df)
+Results <- anova(fit_1_2, glm.0, test="F")
+F_Tab_1_2 <- Results$F[2]
+
+#Write Table:
+etable(lin_results_fit_4_1,lin_results_fit_4_2, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Study_4.txt',
-       caption.above = TRUE)
-
-
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 1a and 1b (Study 4)')
 
 #Study 5 Data:
 
-#Pull in Fact-Checker Ideological Perspective
+#Create Treatment Data:
+
+#Ideological Perspective of Articles:
 FC_Ideo_Data <- read.csv('./Data/FC_Ideo_Data.csv')
 FC_Ideo_Data$X <- NULL
+
+#Pull in treatment data for Study 5:
+Treatment_Data <- read.csv('./Data/Treatment_Data_Study_5.csv')
+Treatment_Data$Link_1 <- NULL
+Treatment_Data$Link_2 <- NULL
+
+#Merge datasets:
+Treatment_Data <- merge(Treatment_Data,FC_Ideo_Data,by='Article_day')
+
+#Filter out false/misleading articles
+T_Data <- Treatment_Data %>% filter(FC_Eval == 'FM')
+
+#Create dummy political ideology variable:
+T_Data <- T_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
+T_Data <- T_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
+T_Data <- T_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
 
 #Pull in ControlData :
 Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
@@ -364,61 +390,68 @@ Treatment_Data <- Treatment_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Sco
 Treatment_Data <- Treatment_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
 
 #Merge data
-All_Data <- rbind(Treatment_Data,Control_Data)
+Study_5_df <- rbind(Treatment_Data,Control_Data)
 
 #Filter only false/misleading articles:
-FM_Data <- All_Data %>% filter(FC_Eval == 'FM')
+FM_Data_Study_5 <- Study_5_df %>% filter(FC_Eval == 'FM')
+T_Data_Study_5 <- Study_5_df %>% filter(Treatment == 1)
 
-#Run linear regression and produCce coefficient values and clustered standard errors:
-fit_1_1 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=FM_Data)
-lin_results_fit_1_1 = coeftest(fit_1_1, vcov. = vcovCL(fit_1_1, cluster = list(FM_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_5_1 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = FM_Data_Study_5)
+#Produce confidence intervals with clustered standard errors:
+CI_5_1 <- confint(lin_results_fit_5_1)
 
-#Run linear regression and produce coefficient values and clustered standard errors:
-fit_1_2 = glm(Four_Ordinal ~Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=FM_Data)
-lin_results_fit_1_2 = coeftest(fit_1_2, vcov. = vcovCL(fit_1_2, cluster = list(FM_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_5_2 = feols(Four_Ordinal~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = FM_Data_Study_5)
+#Produce confidence intervals with clustered standard errors:
+CI_5_2 <- confint(lin_results_fit_5_2)
 
-#Run linear regression and produce coefficient values and clustered standard errors:
-fit_1_3 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=FM_Data)
-lin_results_fit_1_3 = coeftest(fit_1_3, vcov. = vcovCL(fit_1_3, cluster = list(FM_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_5_3 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = FM_Data_Study_5)
+#Produce confidence intervals with clustered standard errors:
+CI_5_3 <- confint(lin_results_fit_5_3)
 
-#Name a different dataset:
-Model_Data_7 <- FM_Data
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
+fit_1_1 <- glm(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = FM_Data_Study_5)
+fit_1_2 <- glm(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = FM_Data_Study_5)
+fit_1_3 <- glm(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score + Article_day, data = FM_Data_Study_5)
 
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
+#F-statistic
+glm.0 <- glm(True_Dummy ~ 1,data=FM_Data_Study_5)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
 
-#Write Table
-texreg(list(lin_results_fit_1_1,lin_results_fit_1_2,lin_results_fit_1_3),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#F-statistic
+glm.0 <- glm(Four_Ordinal ~ 1,data=FM_Data_Study_5)
+Results <- anova(fit_1_2, glm.0, test="F")
+F_Tab_1_2 <- Results$F[2]
+
+#F-statistic
+glm.0 <- glm(Seven_Ordinal ~ 1,data=FM_Data_Study_5)
+Results <- anova(fit_1_3, glm.0, test="F")
+F_Tab_1_3 <- Results$F[2]
+
+
+
+#Write Table:
+etable(lin_results_fit_5_1,lin_results_fit_5_2,lin_results_fit_5_3, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Study_5.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2b')
+
 
 #Merge Google Search Results and survey results for each article in Study 5:
 #Day 1
-Google_results_1 <- read.csv('./Data/Google_Search_Results_Treatment_Day_1_All_New_Attempt.csv')
+Google_results_1 <- read.csv('./Data/Google_Search_Results_Treatment_Day_1_All_New_NG_Ratings.csv')
 Treatment_1 <- Treatment_Data %>% filter(Day == 'Day_1')
-Treatment_1$ResponseId <-  as.character(Treatment_1$ResponseId)
-Treatment_1$Article_day <-  as.character(Treatment_1$Article_day)
 Google_results_1$Article_Eval <- as.character(Google_results_1$Article_Eval)
 Google_results_1$Article_Eval <- paste0('Day_1_',Google_results_1$Article_Eval)
 Survey_1 <- merge(Treatment_1,Google_results_1,by.x=c('ResponseId','Article_day'),by.y=c('Respondent_Id','Article_Eval'))
 Survey_1 <- Survey_1 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 2
-Google_results_2 <- read.csv('./Data/Google_Search_Results_Treatment_Day_2_All_New_Attempt.csv')
+Google_results_2 <- read.csv('./Data/Google_Search_Results_Treatment_Day_2_All_New_NG_Ratings.csv')
 Treatment_2 <- Treatment_Data %>% filter(Day == 'Day_2')
 Google_results_2$Article_Eval <- as.character(Google_results_2$Article_Eval)
 Google_results_2$Article_Eval <- paste0('Day_2_',Google_results_2$Article_Eval)
@@ -426,7 +459,7 @@ Survey_2 <- merge(Treatment_2,Google_results_2,by.x=c('ResponseId','Article_day'
 Survey_2 <- Survey_2 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 3
-Google_results_3 <- read.csv('./Data/Google_Search_Results_Treatment_Day_3_All_New_Attempt.csv')
+Google_results_3 <- read.csv('./Data/Google_Search_Results_Treatment_Day_3_All_New_NG_Ratings.csv')
 Treatment_3 <- Treatment_Data %>% filter(Day == 'Day_3')
 Google_results_3$Article_Eval <- as.character(Google_results_3$Article_Eval)
 Google_results_3$Article_Eval <- paste0('Day_3_',Google_results_3$Article_Eval)
@@ -434,7 +467,7 @@ Survey_3 <- merge(Treatment_3,Google_results_3,by.x=c('ResponseId','Article_day'
 Survey_3 <- Survey_3 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 4
-Google_results_4 <- read.csv('./Data/Google_Search_Results_Treatment_Day_4_All_New_Attempt.csv')
+Google_results_4 <- read.csv('./Data/Google_Search_Results_Treatment_Day_4_All_New_NG_Ratings.csv')
 Treatment_4 <- Treatment_Data %>% filter(Day == 'Day_4')
 Google_results_4$Article_Eval <- as.character(Google_results_4$Article_Eval)
 Google_results_4$Article_Eval <- paste0('Day_4_',Google_results_4$Article_Eval)
@@ -442,7 +475,7 @@ Survey_4 <- merge(Treatment_4,Google_results_4,by.x=c('ResponseId','Article_day'
 Survey_4 <- Survey_4 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 5
-Google_results_5 <- read.csv('./Data/Google_Search_Results_Treatment_Day_5_All_New_Attempt.csv')
+Google_results_5 <- read.csv('./Data/Google_Search_Results_Treatment_Day_5_All_New_NG_Ratings.csv')
 Treatment_5 <- Treatment_Data %>% filter(Day == 'Day_5')
 Google_results_5$Article_Eval <- as.character(Google_results_5$Article_Eval)
 Google_results_5$Article_Eval <- paste0('Day_5_',Google_results_5$Article_Eval)
@@ -450,7 +483,7 @@ Survey_5 <- merge(Treatment_5,Google_results_5,by.x=c('ResponseId','Article_day'
 Survey_5 <- Survey_5 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 6
-Google_results_6 <- read.csv('./Data/Google_Search_Results_Treatment_Day_6_All_New_Attempt.csv')
+Google_results_6 <- read.csv('./Data/Google_Search_Results_Treatment_Day_6_All_New_NG_Ratings.csv')
 Treatment_6 <- Treatment_Data %>% filter(Day == 'Day_6')
 Google_results_6$Article_Eval <- as.character(Google_results_6$Article_Eval)
 Google_results_6$Article_Eval <- paste0('Day_6_',Google_results_6$Article_Eval)
@@ -458,7 +491,7 @@ Survey_6 <- merge(Treatment_6,Google_results_6,by.x=c('ResponseId','Article_day'
 Survey_6 <- Survey_6 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 7
-Google_results_7 <- read.csv('./Data/Google_Search_Results_Treatment_Day_7_All_New_Attempt.csv')
+Google_results_7 <- read.csv('./Data/Google_Search_Results_Treatment_Day_7_All_New_NG_Ratings.csv')
 Treatment_7 <- Treatment_Data %>% filter(Day == 'Day_7')
 Google_results_7$Article_Eval <- as.character(Google_results_7$Article_Eval)
 Google_results_7$Article_Eval <- paste0('Day_7_',Google_results_7$Article_Eval)
@@ -466,7 +499,7 @@ Survey_7 <- merge(Treatment_7,Google_results_7,by.x=c('ResponseId','Article_day'
 Survey_7 <- Survey_7 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 8
-Google_results_8 <- read.csv('./Data/Google_Search_Results_Treatment_Day_8_All_New_Attempt.csv')
+Google_results_8 <- read.csv('./Data/Google_Search_Results_Treatment_Day_8_All_New_NG_Ratings.csv')
 Treatment_8 <- Treatment_Data %>% filter(Day == 'Day_8')
 Google_results_8$Article_Eval <- as.character(Google_results_8$Article_Eval)
 Google_results_8$Article_Eval <- paste0('Day_8_',Google_results_8$Article_Eval)
@@ -474,7 +507,7 @@ Survey_8 <- merge(Treatment_8,Google_results_8,by.x=c('ResponseId','Article_day'
 Survey_8 <- Survey_8 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 9
-Google_results_9 <- read.csv('./Data/Google_Search_Results_Treatment_Day_9_All_New_Attempt.csv')
+Google_results_9 <- read.csv('./Data/Google_Search_Results_Treatment_Day_9_All_New_NG_Ratings.csv')
 Treatment_9 <- Treatment_Data %>% filter(Day == 'Day_9')
 Google_results_9$Article_Eval <- as.character(Google_results_9$Article_Eval)
 Google_results_9$Article_Eval <- paste0('Day_9_',Google_results_9$Article_Eval)
@@ -482,7 +515,7 @@ Survey_9 <- merge(Treatment_9,Google_results_9,by.x=c('ResponseId','Article_day'
 Survey_9 <- Survey_9 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 10
-Google_results_10 <- read.csv('./Data/Google_Search_Results_Treatment_Day_10_All_New_Attempt.csv')
+Google_results_10 <- read.csv('./Data/Google_Search_Results_Treatment_Day_10_All_New_NG_Ratings.csv')
 Treatment_10 <- Treatment_Data %>% filter(Day == 'Day_10')
 Google_results_10$Article_Eval <- as.character(Google_results_10$Article_Eval)
 Google_results_10$Article_Eval <- paste0('Day_10_',Google_results_10$Article_Eval)
@@ -490,7 +523,7 @@ Survey_10 <- merge(Treatment_10,Google_results_10,by.x=c('ResponseId','Article_d
 Survey_10 <- Survey_10 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 11
-Google_results_11 <- read.csv('./Data/Google_Search_Results_Treatment_Day_11_All_New_Attempt.csv')
+Google_results_11 <- read.csv('./Data/Google_Search_Results_Treatment_Day_11_All_New_NG_Ratings.csv')
 Treatment_11 <- Treatment_Data %>% filter(Day == 'Day_11')
 Google_results_11$Article_Eval <- as.character(Google_results_11$Article_Eval)
 Google_results_11$Article_Eval <- paste0('Day_11_',Google_results_11$Article_Eval)
@@ -498,7 +531,7 @@ Survey_11 <- merge(Treatment_11,Google_results_11,by.x=c('ResponseId','Article_d
 Survey_11 <- Survey_11 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 12
-Google_results_12 <- read.csv('./Data/Google_Search_Results_Treatment_Day_12_All_New_Attempt.csv')
+Google_results_12 <- read.csv('./Data/Google_Search_Results_Treatment_Day_12_All_New_NG_Ratings.csv')
 Treatment_12 <- Treatment_Data %>% filter(Day == 'Day_12')
 Google_results_12$Article_Eval <- as.character(Google_results_12$Article_Eval)
 Google_results_12$Article_Eval <- paste0('Day_12_',Google_results_12$Article_Eval)
@@ -522,82 +555,210 @@ Survey_Unrel <- rbind(Survey_1,
 #Create dataframe with this basic data:
 Combined_GS_Survey_Data <- Survey_Unrel
 
+#Treatment Only - Subset By Quality of Google Results:
+Survey_Unrel <- Combined_GS_Survey_Data
+
 #Create string list of news sites scores:
 Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
 Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
 Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
 Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
 
-
 #Create Average Score by Respondent:
-Survey_Evaluations <- Survey_Unrel %>% filter(List_Scores != '')
+Survey_Evaluations <- Survey_Unrel %>% filter(!is.na(Mean_Score))
 Survey_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day,List_Scores)
 Respondent_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day)
 Respondent_Evaluations <- unique(Respondent_Evaluations)
 
-#Create Dummy Variable for People who only saw very reliable news sites in Google Search Results (85):
+#Filter only responses that we have search result data for:
+Survey_Unrel$ALL_URLS <- as.character(Survey_Unrel$ALL_URLS)
+Survey_Unrel$GS_Results <- ifelse(nchar(Survey_Unrel$ALL_URLS) > 2,1,0)
+Survey_Unrel <- Survey_Unrel %>% filter(GS_Results == 1)
 
-Final_Mat <- matrix(ncol=5)
+#Create blank vectors that data will be added to in for loop:
 Only_Rel_URLs <- c()
 Some_Unrel_URLs <- c()
 Total_Rel_Sources <- c()
 Total_Unrel_Sources <- c()
 Total_Sources <- c()
+Respondents_list <- c()
+Articles_list <- c()
+Mean_Scores_list = c()
+Previous_Respondent = ''
+Previous_Article = ''
+All_Scores <- c()
+
+Only_Rel_Sources = NA
+Some_Unrel_Sources = NA
+Rel_Sources = NA
+Unrel_Sources = NA
+Tot_Sources = NA
+
+#Run for loop to create dataset with search engine results data for those in treatment group of Study 5:
 for(i in 1:nrow(Survey_Unrel)){
-  All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Rel_Sources = 0
-  Unrel_Sources = 0
-  Tot_Sources = 0
-  if(length(All_Scores) == 0){
-    All_Scores = NA} else{
-      for(x in 1:length(All_Scores)){
-        Tot_Sources = Tot_Sources + 1
-        if(All_Scores[x] > 85){
-          Rel_Sources = Rel_Sources + 1
-        } else{
-          if(All_Scores[x] < 60){
-            Unrel_Sources = Unrel_Sources + 1
+  if(Survey_Unrel$ResponseId[i] == Previous_Respondent & Survey_Unrel$Article_day[i] == Previous_Article){
+    New_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
+    New_Scores <- as.numeric(New_Scores)
+    All_Scores <- c(All_Scores,New_Scores)
+    Rel_Sources = 0
+    Unrel_Sources = 0
+    Tot_Sources = 0
+    All_Scores <- All_Scores[!is.na(All_Scores)]
+    Mean_Score = mean(All_Scores)
+    if(length(All_Scores) == 0){
+      All_Scores = NA} else{
+        for(x in 1:length(All_Scores)){
+          Tot_Sources = Tot_Sources + 1
+          if(All_Scores[x] > 90){
+            Rel_Sources = Rel_Sources + 1
+          } else{
+            if(All_Scores[x] < 60){
+              Unrel_Sources = Unrel_Sources + 1
+            }
           }
+        } 
+        if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
+          Only_Rel_Sources = 1
+        } else{
+          Only_Rel_Sources = 0
         }
-      } 
-      if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
-        Only_Rel_Sources = 1
-      } else{
-        Only_Rel_Sources = 0
+        if(Unrel_Sources > 0){
+          Some_Unrel_Sources = 1
+        } else{
+          Some_Unrel_Sources = 0
+        }
       }
-      if(Unrel_Sources > 0){
-        Some_Unrel_Sources = 1
-      } else{
-        Some_Unrel_Sources = 0
+  } else{
+    Only_Rel_URLs = c(Only_Rel_URLs,Only_Rel_Sources)
+    Some_Unrel_URLs = c(Some_Unrel_URLs,Some_Unrel_Sources)
+    Total_Rel_Sources = c(Total_Rel_Sources,Rel_Sources)
+    Total_Unrel_Sources = c(Total_Unrel_Sources,Unrel_Sources)
+    Total_Sources = c(Total_Sources,Tot_Sources)
+    Respondents_list <- c(Respondents_list,Previous_Respondent)
+    Articles_list <- c(Articles_list,Previous_Article)
+    Mean_Scores_list = c(Mean_Scores_list,mean(All_Scores))
+    Previous_Respondent = as.character(Survey_Unrel$ResponseId[i])
+    Previous_Article = as.character(Survey_Unrel$Article_day[i])
+    All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
+    All_Scores <- as.numeric(All_Scores)
+    Rel_Sources = 0
+    Unrel_Sources = 0
+    Tot_Sources = 0
+    All_Scores <- All_Scores[!is.na(All_Scores)]
+    if(length(All_Scores) == 0){
+      All_Scores = NA} else{
+        for(x in 1:length(All_Scores)){
+          Tot_Sources = Tot_Sources + 1
+          if(All_Scores[x] > 90){
+            Rel_Sources = Rel_Sources + 1
+          } else{
+            if(All_Scores[x] < 60){
+              Unrel_Sources = Unrel_Sources + 1
+            }
+          }
+        } 
+        if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
+          Only_Rel_Sources = 1
+        } else{
+          Only_Rel_Sources = 0
+        }
+        if(Unrel_Sources > 0){
+          Some_Unrel_Sources = 1
+        } else{
+          Some_Unrel_Sources = 0
+        }
       }
-    }
-  Only_Rel_URLs = c(Only_Rel_URLs,Only_Rel_Sources)
-  Some_Unrel_URLs = c(Some_Unrel_URLs,Some_Unrel_Sources)
-  Total_Rel_Sources = c(Total_Rel_Sources,Rel_Sources)
-  Total_Unrel_Sources = c(Total_Unrel_Sources,Unrel_Sources)
-  Total_Sources = c(Total_Sources,Tot_Sources)
+  }
 }
 
-#Apply data to dataset:
-Survey_Unrel$Only_Rel_URLs <- Only_Rel_URLs
-Survey_Unrel$Some_Unrel_URLs <- Some_Unrel_URLs
-Survey_Unrel$Total_Rel_Sources <- Total_Rel_Sources
-Survey_Unrel$Total_Unrel_Sources <- Total_Unrel_Sources
-Survey_Unrel$Total_Sources <- Total_Sources
+Only_Rel_URLs = c(Only_Rel_URLs,Only_Rel_Sources)
+Some_Unrel_URLs = c(Some_Unrel_URLs,Some_Unrel_Sources)
+Total_Rel_Sources = c(Total_Rel_Sources,Rel_Sources)
+Total_Unrel_Sources = c(Total_Unrel_Sources,Unrel_Sources)
+Total_Sources = c(Total_Sources,Tot_Sources)
+Respondents_list <- c(Respondents_list,Previous_Respondent)
+Articles_list <- c(Articles_list,Previous_Article)
+Mean_Scores_list = c(Mean_Scores_list,mean(All_Scores))
+All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
+All_Scores <- as.numeric(All_Scores)
+Rel_Sources = 0
+Unrel_Sources = 0
+Tot_Sources = 0
+if(length(All_Scores) == 0){
+  All_Scores = NA} else{
+    for(x in 1:length(All_Scores)){
+      Tot_Sources = Tot_Sources + 1
+      if(All_Scores[x] > 90){
+        Rel_Sources = Rel_Sources + 1
+      } else{
+        if(All_Scores[x] < 60){
+          Unrel_Sources = Unrel_Sources + 1
+        }
+      }
+    } 
+    if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
+      Only_Rel_Sources = 1
+    } else{
+      Only_Rel_Sources = 0
+    }
+    if(Unrel_Sources > 0){
+      Some_Unrel_Sources = 1
+    } else{
+      Some_Unrel_Sources = 0
+    }
+  }
+
+#Create matrix with vectors of data:
+Data_Scores <- matrix(c(Respondents_list,
+                        Articles_list,
+                        Total_Rel_Sources,
+                        Total_Unrel_Sources,
+                        Total_Sources,
+                        Only_Rel_URLs,
+                        Some_Unrel_URLs,
+                        Mean_Scores_list),ncol = 8,byrow = FALSE)
+
+#Convert materix to dataframe:
+Data_Scores <- as.data.frame(Data_Scores)
+
+#Name columns:
+colnames(Data_Scores) <- c('ResponseId',
+                           'Article_day',
+                           'Tot_Reliable',
+                           'Tot_Unreliable',
+                           'Total_Sources',
+                           'Only_Rel_Sources',
+                           'Some_Unrel_Sources',
+                           'Mean_Scores')
+
+#Convert variables from factors to strings:
+Data_Scores$Mean_Scores <- as.character(Data_Scores$Mean_Scores)
+Data_Scores$Mean_Scores <- as.numeric(Data_Scores$Mean_Scores)
+Data_Scores$Only_Rel_Sources <- as.character(Data_Scores$Only_Rel_Sources)
+Data_Scores$Only_Rel_Sources <- as.numeric(Data_Scores$Only_Rel_Sources)
+Data_Scores$Some_Unrel_Sources <- as.character(Data_Scores$Some_Unrel_Sources)
+Data_Scores$Some_Unrel_Sources <- as.numeric(Data_Scores$Some_Unrel_Sources)
+Data_Scores$Total_Sources <- as.character(Data_Scores$Total_Sources)
+Data_Scores$Total_Sources <- as.numeric(Data_Scores$Total_Sources)
+Data_Scores$Tot_Unreliable <- as.character(Data_Scores$Tot_Unreliable)
+Data_Scores$Tot_Unreliable <- as.numeric(Data_Scores$Tot_Unreliable)
+Data_Scores$Tot_Reliable <- as.character(Data_Scores$Tot_Reliable)
+Data_Scores$Tot_Reliable <- as.numeric(Data_Scores$Tot_Reliable)
+Data_Scores$Tot_Unreliable <- as.character(Data_Scores$Tot_Unreliable)
+Data_Scores$Tot_Unreliable <- as.numeric(Data_Scores$Tot_Unreliable)
+
+#Convert from factors to strings:
+Data_Scores$Article <- as.character(Data_Scores$Article)
+Data_Scores$ResponseId <- as.character(Data_Scores$ResponseId)
 
 
-
-
-#Filter only responses who only saw very reliable news sites in Google Search Results (85)
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
+#Filter only responses who only saw very reliable news sites in Google Search Results (90)
+only_rel_data <- Data_Scores %>% filter(Only_Rel_URLs == 1)
+Treatment_rel_data <- merge(T_Data,only_rel_data,by=c('ResponseId','Article_day'))
 
 #Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Only unique responses:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
+Treatment_rel_data <- Treatment_rel_data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
+Treatment_rel_data$Treatment <- 1
 
 #Pull control data:
 Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
@@ -625,517 +786,253 @@ Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seve
 Control_Data$Treatment <- 0
 
 #Merge treatment and control articles:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
+Study_5_subset_1 <- rbind(Treatment_rel_data,Control_Data)
 #Remove NAs
-New_Data <- na.omit(New_Data)
+Study_5_subset_1 <- na.omit(Study_5_subset_1)
+
+#Run OLS Model with clustered standard errors:
+fit_fig_2c_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_1)
+
+#Run OLS Model with clustered standard errors:
+fit_fig_2c_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_1)
+
+#Run OLS Model with clustered standard errors:
+fit_fig_2c_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_1)
 
 
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2c (Only Very Reliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(fit_fig_2c_3,fit_fig_2c_2,fit_fig_2c_1, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_2c_1.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2c (Only Very Reliable News Returned)')
+
 
 
 #Some Unreliable
+#Filter only responses who only saw very reliable news sites in Google Search Results (85)
+only_unrel_data <- Data_Scores %>% filter(Some_Unrel_URLs == 1)
+Treatment_unrel_data <- merge(T_Data,only_unrel_data,by=c('ResponseId','Article_day'))
 
-#Filter only responses who saw some unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-
-#Select Variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-#Unique variables:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
+#Select variables:
+Treatment_unrel_data <- Treatment_unrel_data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
+Treatment_unrel_data$Treatment <- 1
 
 #Merge data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
+Study_5_subset_2 <- rbind(Treatment_unrel_data,Control_Data)
 #Remove NAs
-New_Data <- na.omit(New_Data)
+Study_5_subset_2 <- na.omit(Study_5_subset_2)
 
 
 
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+fit_fig_2c_4 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_2)
 
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+fit_fig_2c_5 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_2)
 
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+fit_fig_2c_6 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_2)
 
-#New dataframe:
-Model_Data_7 <- New_Data
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2c (Some Unreliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(fit_fig_2c_6,fit_fig_2c_5,fit_fig_2c_4, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_2c_2.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2c (Some Unreliable News Returned)')
 
-#Filter only responses who didnt see an unreliable or reliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Total_Sources == 0)
 
-#Select Variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-#Unique variables:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
+
+
+#Filter responses by quartile of mean news quality:
+Data_subset_lowest <- Data_Scores %>% filter(Mean_Scores < quantile(Data_Scores$Mean_Scores,na.rm=T)[2])
+Treatment_subset_lowest <- merge(T_Data,Data_subset_lowest,by=c('ResponseId','Article_day'))
+
+#Select variables:
+Treatment_subset_lowest <- Treatment_subset_lowest %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
+Treatment_subset_lowest$Treatment <- 1
 
 #Merge data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
+Data_subset_lowest <- rbind(Treatment_subset_lowest,Control_Data)
 #Remove NAs
-New_Data <- na.omit(New_Data)
+Data_subset_lowest <- na.omit(Data_subset_lowest)
 
 
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_lowest_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_lowest)
 
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_lowest_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_lowest)
 
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2c (No News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_2c_3.txt',
-       caption.above = TRUE)
-
-#Treatment Only - Subset By Quality of Google Results:
-Survey_Unrel <- Combined_GS_Survey_Data
-
-#Create string list of news sites scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
+#Run OLS Model with clustered standard errors:
+lin_results_fit_lowest_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_lowest)
 
 
-#Pull average reliability score of news viewed by respondents:
-Mean_Scores_2 = c()
-Rel_Maj_Dummy = c()
-for(i in 1:nrow(Survey_Unrel)){
-  All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Rel_Sources = 0
-  if(length(All_Scores) == 0){
-    All_Scores = NA
-    Rel_Maj_Dummy = c(Rel_Maj_Dummy,0)} else{
-      for(x in 1:length(All_Scores)){
-        if(All_Scores[x] > 59.5){
-          Rel_Sources = Rel_Sources + 1
-        }
-      } 
-      if(Rel_Sources > 5){
-        Rel_Maj_Dummy = c(Rel_Maj_Dummy,1)
-      } else{
-        Rel_Maj_Dummy = c(Rel_Maj_Dummy,0)
-      }
-    }
-  Mean_Scores_2 = c(Mean_Scores_2,mean(All_Scores))
-}
-
-
-#Create mean proportion and average reliability scores of news viewed:
-Survey_Unrel$Mean_Scores <- Mean_Scores_2
-Survey_Unrel_Mean <- Survey_Unrel %>% dplyr::group_by(ResponseId,Article_day) %>% dplyr::summarise(Mean_All_Scores = mean(Mean_Scores,na.rm=T))
-Survey_Unrel_Prop <- Survey_Unrel %>% dplyr::group_by(ResponseId,Article_day) %>% dplyr::summarise(Mean_Prop_Unrel = mean(Prop_Unreliable,na.rm=T))
-
-#Merge:
-Survey_D <- merge(Survey_Unrel_Mean,Survey_Unrel_Prop,by=c('ResponseId','Article_day'))
-Survey_Unrel <- merge(Survey_Unrel,Survey_D,by=c('ResponseId','Article_day'))
-Survey_Unrel <- Survey_Unrel %>% filter(Total_Sources != 0)
-
-
-#Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores < quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[2])
-
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2d (0-25 Percentage Quartile of News Quality)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(lin_results_fit_lowest_3,lin_results_fit_lowest_2,lin_results_fit_lowest_1, tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_2d_4.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2d (0-25 Percentage Quartile of News Quality)')
 
 #Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores >= quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[2] & Mean_All_Scores < quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[3])
+Treatment_subset_2nd_lowest <- Data_Scores %>% filter(Mean_Scores >= quantile(Data_Scores$Mean_Scores,na.rm=T)[2] & Mean_Scores < quantile(Data_Scores$Mean_Scores,na.rm=T)[3])
+Treatment_subset_2nd_lowest <- merge(T_Data,Treatment_subset_2nd_lowest,by=c('ResponseId','Article_day'))
+
+#Select variables:
+Treatment_subset_2nd_lowest <- Treatment_subset_2nd_lowest %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
+Treatment_subset_2nd_lowest$Treatment <- 1
+
+#Merge data:
+Data_subset_2nd_lowest <- rbind(Treatment_subset_2nd_lowest,Control_Data)
+#Remove NAs
+Data_subset_2nd_lowest <- na.omit(Data_subset_2nd_lowest)
 
 
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_2nd_lowest_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_2nd_lowest)
 
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_2nd_lowest_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_2nd_lowest)
 
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_2nd_lowest_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_2nd_lowest)
 
 
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2d (25-50 Percentage Quartile of News Quality)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(lin_results_fit_subset_2nd_lowest_3,lin_results_fit_subset_2nd_lowest_2,lin_results_fit_subset_2nd_lowest_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_2d_3.txt',
-       caption.above = TRUE)
-
-
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2d (25-50 Percentage Quartile of News Quality)')
 
 #Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores >= quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[3] & Mean_All_Scores < quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[4])
+Treatment_subset_3rd_lowest <- Data_Scores %>% filter(Mean_Scores >= quantile(Data_Scores$Mean_Scores,na.rm=T)[3] & Mean_Scores < quantile(Data_Scores$Mean_Scores,na.rm=T)[4])
+Treatment_subset_3rd_lowest <- merge(T_Data,Treatment_subset_3rd_lowest,by=c('ResponseId','Article_day'))
 
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
+#Select variables:
+Treatment_subset_3rd_lowest <- Treatment_subset_3rd_lowest %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
+Treatment_subset_3rd_lowest$Treatment <- 1
 
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
+#Merge data:
+Data_subset_3rd_lowest <- rbind(Treatment_subset_3rd_lowest,Control_Data)
+#Remove NAs
+Data_subset_3rd_lowest <- na.omit(Data_subset_3rd_lowest)
 
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
 
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_3rd_lowest_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_3rd_lowest)
 
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_3rd_lowest_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_3rd_lowest)
 
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_3rd_lowest_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_3rd_lowest)
 
-#New dataframe:
-Model_Data_7 <- New_Data
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2d (50-75 Percentage Quartile of News Quality)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(lin_results_fit_subset_3rd_lowest_3,lin_results_fit_subset_3rd_lowest_2,lin_results_fit_subset_3rd_lowest_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_2d_2.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2d (50-75 Percentage Quartile of News Quality)')
+
 
 #Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores >= quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[4] & Mean_All_Scores <= 100)
+Treatment_subset_highest <- Data_Scores %>% filter(Mean_Scores > quantile(Data_Scores$Mean_Scores,na.rm=T)[4])
+Treatment_subset_highest <- merge(T_Data,Treatment_subset_highest,by=c('ResponseId','Article_day'))
 
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
+#Select variables:
+Treatment_subset_highest <- Treatment_subset_highest %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
+Treatment_subset_highest$Treatment <- 1
 
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
+#Merge data:
+Data_subset_highest <- rbind(Treatment_subset_highest,Control_Data)
+#Remove NAs
+Data_subset_highest <- na.omit(Data_subset_highest)
 
 
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
 
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_highest_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_highest)
 
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_highest_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_highest)
 
-#New dataframe:
-Model_Data_7 <- New_Data
+#Run OLS Model with clustered standard errors:
+lin_results_fit_subset_highest_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Data_subset_highest)
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
 
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_1,lin_results_fit_2_2),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 2d (75-100 Percentage Quartile of News Quality)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(lin_results_fit_subset_highest_3,lin_results_fit_subset_highest_2,lin_results_fit_subset_highest_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_2d_1.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 2d (75-100 Percentage Quartile of News Quality)')
 
 
+################################################################################################################
 
-#Create dataframe with this basic data:
-Combined_GS_Survey_Data <- Survey_Unrel
+################################# Figure 3a: Coefs_CIs_Predicting_Unrel_Dummy.png ###############################
 
-#Create string list of news sites scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
+################################################################################################################
+
+#Filter by quartile:
+All_Treatment_df <- merge(T_Data,Data_Scores,by=c('ResponseId','Article_day'))
+All_Treatment_df <- All_Treatment_df %>% select(Some_Unrel_Sources,Age,Gender,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score,Article_day,ResponseId)
+
+#Run OLS Model with clustered standard errors:
+Prop_Dummy_results = feols(Some_Unrel_Sources ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence +Dig_Lit_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=All_Treatment_df)
+
+fit_1_1 <- glm(Some_Unrel_Sources ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Dig_Lit_Score + Article_day, data = All_Treatment_df)
+
+#F-statistic
+glm.0 <- glm(Some_Unrel_Sources ~ 1,data=All_Treatment_df)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
 
 
+#Write Table:
+etable(Prop_Dummy_results,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_3_a.txt',
+       replace=TRUE,
+       title='Predicted Exposure to Unreliable News Sources when Searching for Information')
 
-#Create Average Score by Respondent:
-Survey_Evaluations <- Survey_Unrel %>% filter(!is.na(Mean_Score))
-Survey_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day,List_Scores)
-Respondent_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day)
-Respondent_Evaluations <- unique(Respondent_Evaluations)
+################################################################################################################
 
-#Create New Matrix:
-Search_Results_DF <- matrix(ncol=4)
+################################ Figure 3b: Coefs_CIs_Predicting_Headline_Link.png  ##########################################
 
-colnames(Search_Results_DF) <- c('ResponseId',
-                                 'Article_day',
-                                 'Mean_Score_Final',
-                                 'Prop_Unreliable_Final')
+################################################################################################################
 
-#For loop to create measure of expoisure to search engine results:
-for(i in 1:nrow(Respondent_Evaluations)){
-  Resp <- Respondent_Evaluations$ResponseId[i]
-  Article <- Respondent_Evaluations$Article_day[i]  
-  df_survey <- Survey_Evaluations %>% filter(ResponseId == Resp & Article_day == Article)
-  All_Scores <- paste(df_survey$List_Scores,collapse=', ')
-  All_Scores <- unlist(strsplit(All_Scores, split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Mean_Reliability <- mean(All_Scores)
-  Total_links <- length(All_Scores)
-  Total_Unrel <- 0
-  for(x in 1:length(All_Scores)){
-    if(All_Scores[x] < 60){
-      Total_Unrel = Total_Unrel + 1
-    }
-  }
-  Proportion_Unrel = Total_Unrel/Total_links
-  
-  new_df <- matrix(c(Resp,Article,Mean_Reliability,Proportion_Unrel),ncol=4)
-  colnames(new_df) <- c('ResponseId',
-                        'Article_day',
-                        'Mean_Score_Final',
-                        'Prop_Unreliable_Final')
-  
-  
-  Search_Results_DF <- rbind(Search_Results_DF,
-                             new_df)
-}
+#Pull-in search data data:
+Headline_coding <- read.csv('./Data/Headline_Coding.csv')
+#Select variables needed:
+Headline_coding <- Headline_coding %>% select(ResponseId,Article_day,Headline_Link,Age,Gender,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score)
 
-#Create mean and proportion of unreliable news sites exposed:
-Search_Results_DF <- as.data.frame(Search_Results_DF)
-Search_Results_DF$Mean_Score_Final <- as.character(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Mean_Score_Final <- as.numeric(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.character(Search_Results_DF$Prop_Unreliable_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.numeric(Search_Results_DF$Prop_Unreliable_Final)
+#Run OLS Model with clustered standard errors:
+Prop_Dummy_headline_results = feols(Headline_Link ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence +Dig_Lit_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Headline_coding)
 
-#Pull treatment data and merge google search engine results:
-Survey_Unrel_1 <- Survey_Unrel %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Search_Survey <- merge(Survey_Unrel_1,Search_Results_DF,by=c('ResponseId','Article_day'))
-Search_Survey$Unreliable_Dummy <- ifelse(Search_Survey$Prop_Unreliable_Final > 0,1,0)
+fit_1_1 <- glm(Headline_Link ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Dig_Lit_Score + Article_day, data = Headline_coding)
 
-#Run model with clustered standard errors:
-fit_2_3 = glm(Unreliable_Dummy ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence +Dig_Lit_Score + Article_day,data=Search_Survey)
-Prop_Dummy_results = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(Search_Survey$Article_day,Search_Survey$ResponseId), type = "HC0"))
+#F-statistic
+glm.0 <- glm(Headline_Link ~ 1,data=Headline_coding)
+Results <- anova(fit_1_1, glm.0, test="F")
+F_Tab_1_1 <- Results$F[2]
 
-#New Dataframe:
-Model_Data_7 <- Search_Survey
 
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(Prop_Dummy_results),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Predicted Exposure to Unreliable News Sources when Searching for Information',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Exposure to Unreliable News Site"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_3.txt',
-       caption.above = TRUE)
+#Write Table:
+etable(Prop_Dummy_headline_results,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_3_b.txt',
+       replace=TRUE,
+       title='Predicted Use of Headline or URL as a Search Query when Searching Online about Misinformation')
 
 
 ##############################################################################################################
@@ -1145,83 +1042,9 @@ texreg(list(Prop_Dummy_results),
 ##############################################################################################################
 
 
-
-#Treatment Only - Subset By Quality of Google Results:
-Survey_Unrel <- Combined_GS_Survey_Data
-
-#Create string with reliability scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
-
-#Create dummy variable with Google Search Results
-Survey_Unrel$ALL_URLS <- as.character(Survey_Unrel$ALL_URLS)
-Survey_Unrel$GS_Results <- ifelse(nchar(Survey_Unrel$ALL_URLS) > 2,1,0)
-Survey_Unrel <- Survey_Unrel %>% filter(GS_Results == 1)
-
-
-#Create Variables with exposure varaibles:
-
-#New Blank matrix
-Final_Mat <- matrix(ncol=4)
-
-#For loop that calculates variables:
-Only_Rel_URLs <- c()
-Some_Unrel_URLs <- c()
-Total_Rel_Sources <- c()
-Total_Unrel_Sources <- c()
-Total_Sources <- c()
-for(i in 1:nrow(Survey_Unrel)){
-  All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Rel_Sources = 0
-  Unrel_Sources = 0
-  Tot_Sources = 0
-  if(length(All_Scores) == 0){
-    All_Scores = NA} else{
-      for(x in 1:length(All_Scores)){
-        Tot_Sources = Tot_Sources + 1
-        if(All_Scores[x] > 85){
-          Rel_Sources = Rel_Sources + 1
-        } else{
-          if(All_Scores[x] < 60){
-            Unrel_Sources = Unrel_Sources + 1
-          }
-        }
-      } 
-      if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
-        Only_Rel_Sources = 1
-      } else{
-        Only_Rel_Sources = 0
-      }
-      if(Unrel_Sources > 0){
-        Some_Unrel_Sources = 1
-      } else{
-        Some_Unrel_Sources = 0
-      }
-    }
-  Only_Rel_URLs = c(Only_Rel_URLs,Only_Rel_Sources)
-  Some_Unrel_URLs = c(Some_Unrel_URLs,Some_Unrel_Sources)
-  Total_Rel_Sources = c(Total_Rel_Sources,Rel_Sources)
-  Total_Unrel_Sources = c(Total_Unrel_Sources,Unrel_Sources)
-  Total_Sources = c(Total_Sources,Tot_Sources)
-}
-
-#Add variables to dataframe:
-Survey_Unrel$Only_Rel_URLs <- Only_Rel_URLs
-Survey_Unrel$Some_Unrel_URLs <- Some_Unrel_URLs
-Survey_Unrel$Total_Rel_Sources <- Total_Rel_Sources
-Survey_Unrel$Total_Unrel_Sources <- Total_Unrel_Sources
-Survey_Unrel$Total_Sources <- Total_Sources
-
-
-#Filter treatment data by those that were exposed to unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
+#Create dataset with all respondents - Merge treatment data and search engine data:
+Treat_Data_w_scores <- merge(Data_Scores,T_Data,by=c('Article_day','ResponseId'))
+Treat_Data_w_scores <- Treat_Data_w_scores %>% filter(FC_Eval == 'FM')
 
 #Pull control data:
 Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
@@ -1245,698 +1068,285 @@ Control_Data <- merge(Control_Data,Control_WT_Data,by=c('ResponseId','Article_da
 
 #Filter false/misleading articles:
 Control_Data <- Control_Data %>% filter(FC_Eval == 'FM')
-Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Control_Data$Treatment <- 0
+Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Dig_Lit_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean)
 
-#Merge data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
+#Select variables:
+Treat_Data_w_scores <- Treat_Data_w_scores %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Dig_Lit_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean)
 
-#Filter those with high levels of digital literacy
-New_Data <- New_Data %>% filter(Dig_Lit_Score >= median(New_Data$Dig_Lit_Score))
+#Combine control and treatment data:
+Study_5_Control_Treatment <- rbind(Control_Data,Treat_Data_w_scores)
+Study_5_Control_Treatment <- unique(Study_5_Control_Treatment)
 
-#Remove NAs:
-New_Data <- na.omit(New_Data)
+#Filter by news quality :
+upper_half_df <- Data_Scores %>% filter(Mean_Scores >= median(Data_Scores$Mean_Scores,na.rm=T))
+upper_half_df <- merge(T_Data,upper_half_df,by=c('ResponseId','Article_day'))
 
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Select Variables:
+upper_half_df <- upper_half_df %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score,Dummy_Ideology,Article_Lean)
 
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Convert to character variables:
+upper_half_df$ResponseId <- as.character(upper_half_df$ResponseId)
+upper_half_df$Article_day <- as.character(upper_half_df$Article_day)
 
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Create treatment variable:
+upper_half_df$Treatment <- 1
 
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4b (Some Very Unreliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_4b_1.txt',
-       caption.above = TRUE)
-
-#Filter treatment data by those that were exposed to only reliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter those with high levels of digital literacy
-New_Data <- New_Data %>% filter(Dig_Lit_Score >= median(New_Data$Dig_Lit_Score))
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4b (Only Very Reliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_4b_2.txt',
-       caption.above = TRUE)
-
-
-#Filter treatment data by those that were exposed to unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter those with high levels of digital literacy
-New_Data <- New_Data %>% filter(Dig_Lit_Score < median(New_Data$Dig_Lit_Score))
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4a (Some Very Unreliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_4a_1.txt',
-       caption.above = TRUE)
-
-
-#Filter treatment data by those that were exposed to only reliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter those with high levels of digital literacy
-New_Data <- New_Data %>% filter(Dig_Lit_Score < median(New_Data$Dig_Lit_Score))
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Ideo_Congruence + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4a (Only Very Reliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_4a_2.txt',
-       caption.above = TRUE)
-
-
-####################################################################################################################
-
-
-
-
-
-####################################################################################################################
-
-
-
-
-#Filter treatment data by those that were exposed to unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter by Ideological Congruence:
-New_Data <- New_Data %>% filter(Ideo_Congruence == 1)
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Gender','Education','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4c (Some Very Unreliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_4c_1.txt',
-       caption.above = TRUE)
-
-
-#Filter treatment data by those that were exposed to onyl very reliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter by Ideological Congruence:
-New_Data <- New_Data %>% filter(Ideo_Congruence == 1)
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Gender','Education','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4c (Only Reliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
-       file='./Tables/Figure_4c_2.txt',
-       caption.above = TRUE)
-
-
-
-#Filter treatment data by those that were exposed to unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-
-#Pull in control data:
+#Pull control data:
 Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
-#Merge:
+
+#Merge data
 Control_Data <- merge(Control_Data,FC_Ideo_Data,by='Article_day')
-#Create ideological congruence:
+
+#Create Ideological Perspective data:
 Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
 Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
 Control_Data <- Control_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
-Control_Data$Article_day <- as.character(Control_Data$Article_day)
 
-#Pull in web extension data:
+#Only keep those who had the web-tracking extension on while they evaluated articles:
+Control_Data$Article_day <- as.character(Control_Data$Article_day)
 Control_WT_Data <- read.csv('./Data/output_Control_Survey_2.csv')
 Control_WT_Data$Article_day <- as.character(Control_WT_Data$Article_day)
 Control_WT_Data$X <- NULL
 Control_WT_Data <- unique(Control_WT_Data)
 colnames(Control_WT_Data)[1] <- 'ResponseId'
-#Merge:
 Control_Data <- merge(Control_Data,Control_WT_Data,by=c('ResponseId','Article_day'))
-#Filter by false articles:
+
+#Filter false/misleading articles:
 Control_Data <- Control_Data %>% filter(FC_Eval == 'FM')
-#Select data:
-Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean)
+Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score,Dummy_Ideology,Article_Lean)
 Control_Data$Treatment <- 0
 
-#Merge:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
+#Combine data:
+upper_half_df <- rbind(upper_half_df,Control_Data)
 
-#Filter individuals with ideological incongruence:
-New_Data_1 <- New_Data %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
-New_Data_2 <- New_Data %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
+#filter digital literacy:
+upper_half_df_high_diglit <- upper_half_df %>% filter(Dig_Lit_Score >= median(Study_5_Control_Treatment$Dig_Lit_Score))
 
-#Merge control and treatment datra:
-New_Data <- rbind(New_Data_1,New_Data_2)
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment  + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Gender','Education','Income')
+#Remove NAs
+upper_half_df_high_diglit <- na.omit(upper_half_df_high_diglit)
 
 
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4d (Some Very Unreliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4b_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_high_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4b_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_high_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4b_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_high_diglit)
+
+
+#Write Table:
+etable(lin_results_fit_4b_3,lin_results_fit_4b_2,lin_results_fit_4b_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_4b_1.txt',
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4b (Lower half of news quality returned - upper half of digital literacy)')
+
+
+#Filter by quartile:
+lower_half_df <- Data_Scores %>% filter(Mean_Scores < median(Data_Scores$Mean_Scores,na.rm=T))
+lower_half_df <- merge(T_Data,lower_half_df,by=c('ResponseId','Article_day'))
+
+#Select Variables:
+lower_half_df <- lower_half_df %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score,Dummy_Ideology,Article_Lean)
+lower_half_df$ResponseId <- as.character(lower_half_df$ResponseId)
+lower_half_df$Article_day <- as.character(lower_half_df$Article_day)
+lower_half_df$Treatment <- 1
+
+#Combine data:
+lower_half_df <- rbind(lower_half_df,Control_Data)
+
+#filter digital literacy:
+lower_half_df_high_diglit <- lower_half_df %>% filter(Dig_Lit_Score >= median(Study_5_Control_Treatment$Dig_Lit_Score))
+
+#Remove NAs
+lower_half_df_high_diglit <- na.omit(lower_half_df_high_diglit)
+
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4b_4 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_high_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4b_5 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_high_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4b_6 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_high_diglit)
+
+
+#Write Table:
+etable(lin_results_fit_4b_6,lin_results_fit_4b_5,lin_results_fit_4b_4,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_4b_2.txt',
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4b (Lower half of news quality returned - upper half of digital literacy)')
+
+
+
+#filter digital literacy:
+upper_half_df_low_diglit <- upper_half_df %>% filter(Dig_Lit_Score < median(Study_5_Control_Treatment$Dig_Lit_Score))
+
+#Remove NAs
+upper_half_df_low_diglit <- na.omit(upper_half_df_low_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4a_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_low_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4a_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_low_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4a_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_low_diglit)
+
+
+#Write Table:
+etable(lin_results_fit_4a_3,lin_results_fit_4a_2,lin_results_fit_4a_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_4a_1.txt',
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4a (Upper half of news quality returned - lower half of digital literacy)')
+
+
+
+#filter digital literacy:
+lower_half_df_low_diglit <- lower_half_df %>% filter(Dig_Lit_Score < median(Study_5_Control_Treatment$Dig_Lit_Score))
+
+#Remove NAs
+lower_half_df_low_diglit <- na.omit(lower_half_df_low_diglit)
+
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4a_4 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_low_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4a_5 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_low_diglit)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4a_6 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_low_diglit)
+
+
+#Write Table:
+etable(lin_results_fit_4a_6,lin_results_fit_4a_5,lin_results_fit_4a_4,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_4a_2.txt',
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4a (Lower half of news quality returned - lower half of digital literacy)')
+
+
+####################################################################################################################
+
+
+############################## Regression Results for Figures 4c and Figures 4d ####################################
+
+
+####################################################################################################################
+
+#filter only those ideologically congruent to the item of misinformation:
+upper_half_df_congruent <- upper_half_df %>% filter(Ideo_Congruence == 1)
+
+#Remove NAs
+upper_half_df_congruent <- na.omit(upper_half_df_congruent)
+
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4c_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_congruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4c_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_congruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4c_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_congruent)
+
+
+#Write Table:
+etable(lin_results_fit_4c_3,lin_results_fit_4c_2,lin_results_fit_4c_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_4c_1.txt',
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4c (Upper Half of News Quality Returned - Ideological Congruence)')
+
+#filter only those ideologically congruent to the item of misinformation:
+lower_half_df_congruent <- lower_half_df %>% filter(Ideo_Congruence == 1)
+
+#Remove NAs
+lower_half_df_congruent <- na.omit(lower_half_df_congruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4c_4 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_congruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4c_5 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_congruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4c_6 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_congruent)
+
+#Write Table:
+etable(lin_results_fit_4c_6,lin_results_fit_4c_5,lin_results_fit_4c_4,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
+       file='./Tables/Figure_4c_2.txt',
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4c (Lower Half of News Quality Returned - Ideological Congruence)')
+
+
+
+#filter only those ideologically incongruent to the item of misinformation:
+upper_half_df_incongruent_1 <- upper_half_df %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
+upper_half_df_incongruent_2 <- upper_half_df %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
+
+upper_half_df_incongruent <- rbind(upper_half_df_incongruent_1,upper_half_df_incongruent_2)
+
+#Remove NAs
+upper_half_df_incongruent <- na.omit(upper_half_df_incongruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4d_1 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_incongruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4d_2 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_incongruent)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4d_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=upper_half_df_incongruent)
+
+#Write Table:
+etable(lin_results_fit_4d_3,lin_results_fit_4d_2,lin_results_fit_4d_1,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_4d_1.txt',
-       caption.above = TRUE)
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4d (Upper Half of News Quality Returned - Ideologically Incongruent)')
 
+#filter only those ideologically incongruent to the item of misinformation:
+lower_half_df_incongruent_1 <- lower_half_df %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
+lower_half_df_incongruent_2 <- lower_half_df %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
 
+lower_half_df_incongruent <- rbind(lower_half_df_incongruent_1,lower_half_df_incongruent_2)
 
-#Filter treatment data by those that were exposed to only very reliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean)
-Survey_Unrel_1$Treatment <- 1
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4d_4 = feols(Seven_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_incongruent)
 
-#Merge:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4d_5 = feols(Four_Ordinal ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_incongruent)
 
-#Filter individuals with ideological incongruence:
-New_Data_1 <- New_Data %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
-New_Data_2 <- New_Data %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4d_6 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=lower_half_df_incongruent)
 
-#Merge control and treatment datra:
-New_Data <- rbind(New_Data_1,New_Data_2)
-
-#Remove NAs:
-New_Data <- na.omit(New_Data)
-
-#Run Model with clustered standard errors:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_2 = glm(Four_Ordinal ~ Treatment +  Age + Gender + Education_Score + Income_Score + Article_day,data=New_Data)
-lin_results_fit_2_2 = coeftest(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model with clustered standard errors:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score  + Article_day,data=New_Data)
-lin_results_fit_2_3 = coeftest(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#New dataframe:
-Model_Data_7 <- New_Data
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Gender','Education','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_3,lin_results_fit_2_2,lin_results_fit_2_1),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit,
-       caption= 'Results from OLS Regression Results Presented in Figure 4d (Only Reliable News Returned)',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Categorical Measure","4-Point Ordinal Scale","7-Point Ordinal Scale"),
-       float.pos = "!htbp",
+#Write Table:
+etable(lin_results_fit_4d_6,lin_results_fit_4d_5,lin_results_fit_4d_4,
+       tex = TRUE,
+       signifCode= c(`***` = 0.001, `**` = 0.01, `*` = 0.05),
        file='./Tables/Figure_4d_2.txt',
-       caption.above = TRUE)
-
-
-####################################################################################################################
-
-
-#Supplementary Logistic Regression Results
-
-
-####################################################################################################################
-
-#Study 2 Analysis:
-#Pull in this data:
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-
-Study_2_Ideo <- read.csv('./Data/Study_2_Respondent_Ideo.csv')
-
-Data_Bef_Aft$ResponseId <- as.character(Data_Bef_Aft$ResponseId)
-Study_2_Ideo$ResponseId <- as.character(Study_2_Ideo$ResponseId)
-
-Study_2_Ideo <- unique(Study_2_Ideo)
-
-Data_Bef_Aft <- merge(Data_Bef_Aft,Study_2_Ideo,by='ResponseId')
-
-
-Data_Bef_Aft <- Data_Bef_Aft %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
-Data_Bef_Aft <- Data_Bef_Aft %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
-
-Article_data <- Data_Bef_Aft %>% mutate(Article_Lean = ifelse(Dummy_Ideology == 'Conservative' & Dummy_Congruence == 1,'Conservative','None'))
-Article_data <- Article_data %>% mutate(Article_Lean = ifelse(Dummy_Ideology == 'Liberal' & Dummy_Congruence == 1,'Liberal',Article_Lean))
-
-Article_data <- Article_data %>% select(Article_day,Article_Lean)
-
-Article_data <- unique(Article_data)
-Article_data <- na.omit(Article_data)
-
-full_omit_2 <- c()
-
-#Study 1:
-
-#Study 1:
-#Pull in this data: Search Experiment 1: Study 1:
-Misl_False_Search <- read.csv('./Data/Search_Exp_Misl_False.csv')
-#Select variables of interest:
-Model_Data_7 <- Misl_False_Search %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
-#Remove NA values:
-Model_Data_7 = na.omit(Model_Data_7)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
-
-#Run OLS Model with clustered standard errors:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day,family=binomial, data = Model_Data_7)
-lin_results_fit_2_1 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-full_omit_2 <- c(full_omit_2,full_omit)
-
-
-
-#Study 2:
-#Pull in this data:
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-
-#Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
-#Remove NA values:
-Model_Data_7 <- na.omit(Model_Data_7)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
-
-#Run linear regression and produce coefficient values:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day,family=binomial, data = Model_Data_7)
-lin_results_fit_2_2 = coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$Article_day), type = "HC0"))
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-full_omit_2 <- c(full_omit_2,full_omit)
-
-
-#Study 3 Analysis:
-#Load Data:
-Latency_Data <- read.csv('./Data/Latency_FC_Data.csv')
-Latency_Survey <- read.csv('./Data/Latency_Control_Survey.csv')
-
-#Create Article_day data for purpose of merging
-Latency_Survey <- Latency_Survey %>% mutate(Article_day = paste0(day,sep='_',Article))
-
-#Select data needed:
-Latency_Survey <- Latency_Survey %>% select(Evaluation,Likert_Evaluation,True_Likert_After_Info,Evaluation_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-
-#Create Gender dummy variable
-Latency_Survey$Gender <- as.character(Latency_Survey$Gender)
-Latency_Survey$Gender <- ifelse(Latency_Survey$Gender == 'Female',1,0)
-
-
-#Create Likert Score post-treatment:
-Latency_Survey$True_Likert_After_Info <- as.character(Latency_Survey$True_Likert_After_Info)
-Latency_Survey <- Latency_Survey %>% filter(True_Likert_After_Info != 'not asked')
-Latency_Survey$True_Likert_After_Info <- substr(Latency_Survey$True_Likert_After_Info, start = 1, stop = 2)
-Latency_Survey$True_Likert_After_Info <- as.numeric(Latency_Survey$True_Likert_After_Info)
-
-#Create Likert Score pre-treatment:
-Latency_Survey$Likert_Evaluation <- as.character(Latency_Survey$Likert_Evaluation)
-Latency_Survey$Likert_Evaluation <- substr(Latency_Survey$Likert_Evaluation, start = 1, stop = 2)
-Latency_Survey$Likert_Evaluation <- as.numeric(Latency_Survey$Likert_Evaluation)
-
-#Create True Dummy variable pre and post-treatment:
-Latency_Survey$Evaluation <- as.character(Latency_Survey$Evaluation)
-Latency_Survey$Evaluation_After_Info <- as.character(Latency_Survey$Evaluation_After_Info)
-Latency_Survey$Evaluation <- substr(Latency_Survey$Evaluation, start = 1, stop = 4)
-Latency_Survey$Evaluation_After_Info <- substr(Latency_Survey$Evaluation_After_Info, start = 1, stop = 4)
-Latency_Survey$True_Dummy <- ifelse(Latency_Survey$Evaluation == 'True',1,0)
-Latency_Survey$True_Dummy_After <- ifelse(Latency_Survey$Evaluation_After_Info == 'True',1,0)
-
-#Remove observations that posted that their age was above 85:
-Latency_Survey$Age <- ifelse(Latency_Survey$Age > 85,NA,Latency_Survey$Age)
-
-
-
-#Pull in Fact-checking data from Study 2:
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-Data_Bef_Aft$Article_day <- as.character(Data_Bef_Aft$Article_day)
-
-Article_Days <- unique(Data_Bef_Aft$Article_day)
-
-#Only use articles that were rated as false/misleading in Study 2
-Latency_Survey <- Latency_Survey %>% filter(Article_day %in% Article_Days)
-
-#Merge pre and post-treatment data:
-After_Evaluation <- Latency_Survey %>% select(True_Dummy_After,True_Likert_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-colnames(After_Evaluation)[1] <- 'True_Dummy'
-colnames(After_Evaluation)[2] <- 'Likert_Evaluation'
-Before_Evaluation <- Latency_Survey %>% select(True_Dummy,Likert_Evaluation,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-
-#Create Treatment variables:
-After_Evaluation$Treatment <- 1
-Before_Evaluation$Treatment <- 0
-
-#merge them together
-Latency_Search <- rbind(Before_Evaluation,After_Evaluation)
-
-#Create Ideological Congruence data:
-Model_Data_7 <- Latency_Search
-Model_Data_7 <- Model_Data_7 %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
-Model_Data_7 <- Model_Data_7 %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
-Model_Data_7 <- merge(Model_Data_7,Article_data,all=T)
-Model_Data_7$Article_Lean <- ifelse(Model_Data_7$Article_Lean == 'None','Neutral',Model_Data_7$Article_Lean)
-Model_Data_7 <- Model_Data_7 %>% mutate(Dummy_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
-Model_Data_7$Susc_FN <- Model_Data_7$True_Dummy
-Model_Data_7$Treat_Search <- Model_Data_7$Treatment
-
-#Run linear regression and produce coefficient values:
-fit_2_1 <- glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day,family=binomial, data = Model_Data_7)
-lin_results_fit_2_3 <- coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$Article_day), type = "HC0"))
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-
-full_omit_2 <- c(full_omit_2,full_omit)
-
-
-
-
-#Study 4:
-#Pull in data:
-Data_Bef_Aft_Covid <- read.csv('./Data/Experiment_2_Study_2_Misl_False.csv')
-Study_4_Data <- Data_Bef_Aft_Covid %>% filter(Treat_Search == 0)
-
-#Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft_Covid %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
-#Remove NA values:
-Model_Data_7 <- na.omit(Model_Data_7)
-
-#Create Gender data
-Model_Data_7$Gender <- as.character(Model_Data_7$Gender)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
-
-#Run OLS Model with clustered standard errors:
-fit_2_1 <- glm(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score + Article_day,family=binomial, data = Model_Data_7)
-lin_results_fit_2_4 <- coeftest(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$Article_day), type = "HC0"))
-
-#Unique Articles:
-Model_Data_7$Article_day <- as.character(Model_Data_7$Article_day)
-Model_Data_7$Article_day <- paste0('Article_day',Model_Data_7$Article_day)
-Omit_c <- unique(Model_Data_7$Article_day)
-full_omit <- paste(Omit_c, collapse = '|')
-full_omit_2 <- c(full_omit_2,full_omit)
-full_omit_2 <- paste(full_omit_2, collapse = '|')
-
-#Coefficient Names:
-Coef_names= c('(Intercept)','Treatment','Age','Ideological Congruence','Education','Gender','Income')
-
-#Write Table
-texreg(list(lin_results_fit_2_1,lin_results_fit_2_2,lin_results_fit_2_3,lin_results_fit_2_4),
-       include.ci = FALSE,
-       digits=4,
-       omit.coef = full_omit_2,
-       caption= 'Logistic Regression Results for Binary Dependent Variables in Figure 1',
-       label = "table",
-       custom.coef.names = Coef_names,
-       custom.model.names= c("Study 1", "Study 2","Study 3","Study 4"),
-       float.pos = "!htbp",
-       file='./Tables/Logistic_Figure_1.txt',
-       caption.above = TRUE)
-
-
-
-
-
-
+       replace=TRUE,
+       title='Results from OLS Regression Results Presented in Figure 4d (Lower Half of News Quality Returned - Ideologically Incongruent)')
 
 ################################################################################################################
+
 ####Figures - Robust - Mode
 
 ##############################################################################################################
@@ -2044,227 +1454,98 @@ Robust_Articles_T <- unique(FCer_Data_T$Article_day)
 Robust_Articles_T <- as.character(Robust_Articles_T)
 
 
-#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 1:
+########################################## Figure 1a and Figure 1b ####################################################
 
-#Pull in this data: Search Experiment 1: Study 1:
-Misl_False_Search <- read.csv('./Data/Search_Exp_Misl_False.csv')
+#Study 1:
+#Filter only robust articles:
+Study_1_df$Article_day <- gsub('Article_day','',Study_1_df$Article_day)
+Study_1_df_robust <- Study_1_df %>% filter(Article_day %in% Robust_Articles)
 
-#Select variables of interest:
-Model_Data_7 <- Misl_False_Search %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
-#Remove NA values:
-Model_Data_7 = na.omit(Model_Data_7)
-
-Model_Data_7 <- Model_Data_7 %>% filter(Article_day %in% Robust_Articles)
-
-#Create dataset with just control data:
-Study_1_Data <- Model_Data_7 %>% filter(Treat_Search == 0)
-
-#Run linear regression and produce coefficient values:
-fit_1_1 = glm(Susc_FN ~ Treat_Search + Education_Score + Age + Gender + Income_Score + Article_day, data = Model_Data_7)
-
-#Run linear regression and produce coefficient values:
-fit_1_1 = glm(Susc_FN ~ Treat_Search + Education_Score + Age + Gender + Income_Score + Article_day, data = Model_Data_7)
-
+#Run OLS Model with clustered standard errors:
+fit_1_1_robust = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df_robust)
 #Produce confidence intervals with clustered standard errors:
-CI_1_1 = coefci(fit_1_1, vcov. = vcovCL(fit_1_1, cluster = list(Model_Data_7$ResponseId), type = "HC0"))
+CI_1_1_robust <- confint(fit_1_1_robust)
 
-#Run linear regression and produce coefficient values:
-fit_1_2 = glm(Likert_Evaluation ~ Treat_Search + Education_Score + Age + Gender + Income_Score + Article_day, data = Model_Data_7)
-
+#Run OLS Model with clustered standard errors:
+fit_1_2_robust = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df_robust)
 #Produce confidence intervals with clustered standard errors:
-CI_1_2 = coefci(fit_1_2, vcov. = vcovCL(fit_1_2, cluster = list(Model_Data_7$ResponseId), type = "HC0"))
+CI_1_2_robust <- confint(fit_1_2_robust)
 
+#Study 2:
+#Filter only robust articles:
+Study_2_df$Article_day <- gsub('Article_day','',Study_2_df$Article_day)
+Study_2_df_robust <- Study_2_df %>% filter(Article_day %in% Robust_Articles)
 
-
-#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 2:
-
-
-#Pull in this data:
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-
-#Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
-#Remove NA values:
-Model_Data_7 <- na.omit(Model_Data_7)
-
-Model_Data_7 <- Model_Data_7 %>% filter(Article_day %in% Robust_Articles)
-
-
-#Create dataset with just control data:
-Study_2_Data <- Model_Data_7 %>% filter(Treat_Search == 0)
-
-#Run linear regression and produce coefficient values:
-fit_2_1 = glm(Susc_FN ~ Treat_Search + Age + Gender + Education_Score + Article_day, data = Model_Data_7)
-
+#Run OLS Model with clustered standard errors:
+fit_2_1_robust = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df_robust)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 <- coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_2_1_robust <- confint(fit_2_1_robust)
 
-#Run linear regression and produce coefficient values:
-fit_2_2 = glm(Likert_Evaluation ~ Treat_Search + Age + Gender + Article_day, data = Model_Data_7)
-
+#Run OLS Model with clustered standard errors:
+fit_2_2_robust = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df_robust)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 <- coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(Model_Data_7$ResponseId,Model_Data_7$Article_day), type = "HC0"))
+CI_2_2_robust <- confint(fit_2_2_robust)
 
+#Study 3:
+#Filter only robust articles:
+Study_3_df$Article_day <- gsub('Article_day','',Study_3_df$Article_day)
+Study_3_df_robust <- Study_3_df %>% filter(Article_day %in% Robust_Articles)
 
+#Run OLS Model with clustered standard errors:
+fit_3_1_robust = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df_robust)
+#Produce confidence intervals with clustered standard errors:
+CI_3_1_robust <- confint(fit_3_1_robust)
 
-
-#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 3:
-
-
-#Load Data:
-Latency_Data <- read.csv('./Data/Latency_FC_Data.csv')
-Latency_Survey <- read.csv('./Data/Latency_Control_Survey.csv')
-
-#Create Article_day data for purpose of merging
-Latency_Survey <- Latency_Survey %>% mutate(Article_day = paste0(day,sep='_',Article))
-
-#Select data needed:
-Latency_Survey <- Latency_Survey %>% select(Evaluation,Likert_Evaluation,True_Likert_After_Info,Evaluation_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-
-#Create Gender dummy variable
-Latency_Survey$Gender <- as.character(Latency_Survey$Gender)
-Latency_Survey$Gender <- ifelse(Latency_Survey$Gender == 'Female',1,0)
-
-
-#Create Likert Score post-treatment:
-Latency_Survey$True_Likert_After_Info <- as.character(Latency_Survey$True_Likert_After_Info)
-Latency_Survey <- Latency_Survey %>% filter(True_Likert_After_Info != 'not asked')
-Latency_Survey$True_Likert_After_Info <- substr(Latency_Survey$True_Likert_After_Info, start = 1, stop = 2)
-Latency_Survey$True_Likert_After_Info <- as.numeric(Latency_Survey$True_Likert_After_Info)
-
-#Create Likert Score pre-treatment:
-Latency_Survey$Likert_Evaluation <- as.character(Latency_Survey$Likert_Evaluation)
-Latency_Survey$Likert_Evaluation <- substr(Latency_Survey$Likert_Evaluation, start = 1, stop = 2)
-Latency_Survey$Likert_Evaluation <- as.numeric(Latency_Survey$Likert_Evaluation)
-
-#Create True Dummy variable pre and post-treatment:
-Latency_Survey$Evaluation <- as.character(Latency_Survey$Evaluation)
-Latency_Survey$Evaluation_After_Info <- as.character(Latency_Survey$Evaluation_After_Info)
-Latency_Survey$Evaluation <- substr(Latency_Survey$Evaluation, start = 1, stop = 4)
-Latency_Survey$Evaluation_After_Info <- substr(Latency_Survey$Evaluation_After_Info, start = 1, stop = 4)
-Latency_Survey$True_Dummy <- ifelse(Latency_Survey$Evaluation == 'True',1,0)
-Latency_Survey$True_Dummy_After <- ifelse(Latency_Survey$Evaluation_After_Info == 'True',1,0)
-
-#Remove observations that posted that their age was above 85:
-Latency_Survey$Age <- ifelse(Latency_Survey$Age > 85,NA,Latency_Survey$Age)
-
-
-
-#Pull in Fact-checking data from Study 2:
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-Data_Bef_Aft$Article_day <- as.character(Data_Bef_Aft$Article_day)
-
-#Only use articles that were rated as false/misleading in Study 2
-Latency_Survey <- Latency_Survey %>% filter(Article_day %in% Article_Days)
-
-#Merge pre and post-treatment data:
-After_Evaluation <- Latency_Survey %>% select(True_Dummy_After,True_Likert_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-colnames(After_Evaluation)[1] <- 'True_Dummy'
-colnames(After_Evaluation)[2] <- 'Likert_Evaluation'
-Before_Evaluation <- Latency_Survey %>% select(True_Dummy,Likert_Evaluation,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-
-#Create Treatment variables:
-After_Evaluation$Treatment <- 1
-Before_Evaluation$Treatment <- 0
-
-#merge them together
-Latency_Search <- rbind(Before_Evaluation,After_Evaluation)
-
-Latency_Search <- Latency_Search %>% filter(Article_day %in% Robust_Articles)
-
-#Create Control dataframe
-Study_3_Data <- Latency_Search %>% filter(Treatment == 0)
-
-#Run linear regression and produce coefficient values:
-fit_3_1 = glm(True_Dummy ~ Treatment + Age + Gender + Article_day, data = Latency_Search)
-#Produce confidence intervals using clustered standard errors:
-CI_3_1 <- coefci(fit_3_1, vcov. = vcovCL(fit_3_1, cluster = list(Latency_Search$ResponseId), type = "HC0"))
-
-#Run linear regression and produce coefficient values:
-fit_3_2 = glm(Likert_Evaluation ~ Treatment + Age + Gender + Article_day, data = Latency_Search)
-#Produce confidence intervals using clustered standard errors:
-CI_3_2 <- coefci(fit_3_2, vcov. = vcovCL(fit_3_2, cluster = list(Latency_Search$ResponseId), type = "HC0"))
-
-
+#Run OLS Model with clustered standard errors:
+fit_3_2_robust = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df_robust)
+#Produce confidence intervals with clustered standard errors:
+CI_3_2_robust <- confint(fit_3_2_robust)
 
 #Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 4:
 
+#Study 4:
+#Filter only robust articles:
+Study_4_df$Article_day <- gsub('Article_day','',Study_4_df$Article_day)
+Study_4_df_robust <- Study_4_df %>% filter(Article_day %in% Robust_Articles)
 
-#Pull in data
-Data_Bef_Aft_Covid <- read.csv('./Data/Experiment_2_Study_2_Misl_False.csv')
-
-Model_Data_7 <- Model_Data_7 %>% filter(Article_day %in% Robust_Articles)
-
-#Create dataframe with just control data
-Study_4_Data <- Data_Bef_Aft_Covid %>% filter(Treat_Search == 0)
-
-#Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft_Covid %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
-#Remove NA values:
-Model_Data_7 <- na.omit(Model_Data_7)
-
-#Run linear regression and produce coefficient values:
-fit_4_1 = glm(Susc_FN ~ Treat_Search + Age + Gender + Article_day, data = Model_Data_7)
+#Run OLS Model with clustered standard errors:
+fit_4_1_robust = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df_robust)
 #Produce confidence intervals with clustered standard errors:
-CI_4_1 <- coefci(fit_4_1, vcov. = vcovCL(fit_4_1, cluster = list(Model_Data_7$ResponseId), type = "HC0"))
+CI_4_1_robust <- confint(fit_4_1_robust)
 
-#Run linear regression and produce coefficient values:
-fit_4_2 = glm(Likert_Evaluation ~ Treat_Search + Age + Gender + Article_day, data = Model_Data_7)
+#Run OLS Model with clustered standard errors:
+fit_4_2_robust = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df_robust)
 #Produce confidence intervals with clustered standard errors:
-CI_4_2 <- coefci(fit_4_2, vcov. = vcovCL(fit_4_2, cluster = list(Model_Data_7$ResponseId), type = "HC0"))
+CI_4_2_robust <- confint(fit_4_2_robust)
+
+#################################################### Categorical (Rate as True) ####################################################
 
 #Create vector with Study names:
-Coef_names <- c('Study 1',
-                'Study 1',
-                'Study 2',
-                'Study 2',
-                'Study 3',
-                'Study 3',
-                'Study 4',
-                'Study 4')
-
-#Create vector with measures:
-Measure <-    c('Rate as True',
-                'Ordinal Scale (7)',
-                'Rate as True',
-                'Ordinal Scale (7)',
-                'Rate as True',
-                'Ordinal Scale (7)',
-                'Rate as True',
-                'Ordinal Scale (7)')
+Coef_names <- rev(c('Study 1',
+                    'Study 2',
+                    'Study 3',
+                    'Study 4'))
 
 #Create vector with coefficients:
-Coefficients <- c(fit_1_1$coefficients[2]/sd(Study_1_Data$Susc_FN),
-                  fit_1_2$coefficients[2]/sd(Study_1_Data$Likert_Evaluation),
-                  fit_2_1$coefficients[2]/sd(Study_2_Data$Susc_FN),
-                  fit_2_2$coefficients[2]/sd(Study_2_Data$Likert_Evaluation),
-                  fit_3_1$coefficients[2]/sd(Study_3_Data$True_Dummy),
-                  fit_3_2$coefficients[2]/sd(Study_3_Data$Likert_Evaluation),
-                  fit_4_1$coefficients[2]/sd(Study_4_Data$Susc_FN),
-                  fit_4_2$coefficients[2]/sd(Study_4_Data$Likert_Evaluation))
+Coefficients <- rev(c(fit_1_1_robust$coefficients[1],
+                      fit_2_1_robust$coefficients[1],
+                      fit_3_1_robust$coefficients[1],
+                      fit_4_1_robust$coefficients[1]))
 
 #Create vector with upper confidence intervals:
-CI_Upper <- c(CI_1_1[2,2]/sd(Study_1_Data$Susc_FN),
-              CI_1_2[2,2]/sd(Study_1_Data$Likert_Evaluation),
-              CI_2_1[2,2]/sd(Study_2_Data$Susc_FN),
-              CI_2_2[2,2]/sd(Study_2_Data$Likert_Evaluation),
-              CI_3_1[2,2]/sd(Study_3_Data$True_Dummy),
-              CI_3_2[2,2]/sd(Study_3_Data$Likert_Evaluation),
-              CI_4_1[2,2]/sd(Study_4_Data$Susc_FN),
-              CI_4_2[2,2]/sd(Study_4_Data$Likert_Evaluation))
+CI_Upper <- rev(c(CI_1_1_robust[1,2],
+                  CI_2_1_robust[1,2],
+                  CI_3_1_robust[1,2],
+                  CI_4_1_robust[1,2]))
 
 #Create vector with lower confidence intervals:
-CI_Lower <- c(CI_1_1[2,1]/sd(Study_1_Data$Susc_FN),
-              CI_1_2[2,1]/sd(Study_1_Data$Likert_Evaluation),
-              CI_2_1[2,1]/sd(Study_2_Data$Susc_FN),
-              CI_2_2[2,1]/sd(Study_2_Data$Likert_Evaluation),
-              CI_3_1[2,1]/sd(Study_3_Data$True_Dummy),
-              CI_3_2[2,1]/sd(Study_3_Data$Likert_Evaluation),
-              CI_4_1[2,1]/sd(Study_4_Data$Susc_FN),
-              CI_4_2[2,1]/sd(Study_4_Data$Likert_Evaluation))          
+CI_Lower <- rev(c(CI_1_1_robust[1,1],
+                  CI_2_1_robust[1,1],
+                  CI_3_1_robust[1,1],
+                  CI_4_1_robust[1,1]))         
 
 #Put together matrix with data for plot:
-d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,Measure)
+d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
 rownames(d_matrix) <- c()
 d_matrix <- data.frame(d_matrix)
 d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
@@ -2276,10 +1557,10 @@ d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
 d_matrix <- d_matrix %>% arrange(desc(row_number()))
 
 #Set points on Y-Axis:
-d_matrix$x<-c(0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
+d_matrix$x<-c(4,3,2,1)
 
 #Produce plot:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients,color=Measure)) +
+ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
   geom_point(size=4) +
@@ -2287,7 +1568,7 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients,color=Measure)) +
                      max = CI_Upper),
                  size=1.5) +
   scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
-  ylab("\nEffect of Searching for Information on \nPerceived Veracity of Misinformation \n(1 unit is 1 standard deviation \nof that measure in the control group) ") +
+  ylab("\nEffect of Searching Online on Probability \nof Rating Misinformation as True") +
   theme_classic() +
   theme(axis.title.x = element_text(size=18),
         axis.text.x  = element_text(size=16),
@@ -2296,7 +1577,7 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients,color=Measure)) +
         plot.title = element_text(size = 16),
         legend.title = element_text(size=16),
         legend.text = element_text(size=14)) +
-  ylim(-0.10,0.4) +
+  ylim(-0.05,0.2) +
   scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
                                                       'Study 3',
                                                       'Study 2',
@@ -2304,7 +1585,81 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients,color=Measure)) +
   coord_flip()
 
 #Save figure:
-ggsave('./Figures/All_4_Studies_ROBUST.png',height=6,width=8)
+ggsave('./Figures/All_4_Studies_Categorical_Robust.png',height=6,width=8)
+
+
+
+
+#################################################### Ordinal Scale (Seven) ####################################################
+
+#Create vector with Study names:
+Coef_names <- rev(c('Study 1',
+                    'Study 2',
+                    'Study 3',
+                    'Study 4'))
+
+#Create vector with coefficients:
+Coefficients <- rev(c(fit_1_2_robust$coefficients[1],
+                      fit_2_2_robust$coefficients[1],
+                      fit_3_2_robust$coefficients[1],
+                      fit_4_2_robust$coefficients[1]))
+
+#Create vector with upper confidence intervals:
+CI_Upper <- rev(c(CI_1_2_robust[1,2],
+                  CI_2_2_robust[1,2],
+                  CI_3_2_robust[1,2],
+                  CI_4_2_robust[1,2]))
+
+#Create vector with lower confidence intervals:
+CI_Lower <- rev(c(CI_1_2_robust[1,1],
+                  CI_2_2_robust[1,1],
+                  CI_3_2_robust[1,1],
+                  CI_4_2_robust[1,1]))         
+
+#Put together matrix with data for plot:
+d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
+rownames(d_matrix) <- c()
+d_matrix <- data.frame(d_matrix)
+d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
+d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+d_matrix <- d_matrix %>% arrange(desc(row_number()))
+
+#Set points on Y-Axis:
+d_matrix$x<-c(4,3,2,1)
+
+#Produce plot:
+ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(size=4) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
+  ylab("\nEffect of Searching Online on the \nPerceived Veracity of Misinformation (7-point scale) ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=18),
+        axis.text.x  = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.y  = element_text(size=22),
+        plot.title = element_text(size = 16),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=14)) +
+  ylim(-0.10,0.8) +
+  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
+                                                      'Study 3',
+                                                      'Study 2',
+                                                      'Study 1'),limits=c(0.5,4.5)) +
+  coord_flip()
+
+#Save figure:
+ggsave('./Figures/All_4_Studies_Ordinal_Robust.png',height=6,width=8)
+
+
 
 ################################################################################################################
 
@@ -2312,7 +1667,12 @@ ggsave('./Figures/All_4_Studies_ROBUST.png',height=6,width=8)
 
 ################################################################################################################
 
-#Pull in treatment data for Study 5:
+
+#Pull in Fact-Checker Ideological Perspective
+FC_Ideo_Data <- read.csv('./Data/FC_Ideo_Data.csv')
+FC_Ideo_Data$X <- NULL
+
+#Pull in treatment data for Study 5L
 Treatment_Data <- read.csv('./Data/Treatment_Data_Study_5.csv')
 Treatment_Data$Link_1 <- NULL
 Treatment_Data$Link_2 <- NULL
@@ -2325,17 +1685,15 @@ Treatment_Data <- Treatment_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideol
 
 #Merge Google Search Results and survey results for each article in Study 5:
 #Day 1
-Google_results_1 <- read.csv('./Data/Google_Search_Results_Treatment_Day_1_All_New_Attempt.csv')
+Google_results_1 <- read.csv('./Data/Google_Search_Results_Treatment_Day_1_All_New_NG_Ratings.csv')
 Treatment_1 <- Treatment_Data %>% filter(Day == 'Day_1')
-Treatment_1$ResponseId <-  as.character(Treatment_1$ResponseId)
-Treatment_1$Article_day <-  as.character(Treatment_1$Article_day)
 Google_results_1$Article_Eval <- as.character(Google_results_1$Article_Eval)
 Google_results_1$Article_Eval <- paste0('Day_1_',Google_results_1$Article_Eval)
 Survey_1 <- merge(Treatment_1,Google_results_1,by.x=c('ResponseId','Article_day'),by.y=c('Respondent_Id','Article_Eval'))
 Survey_1 <- Survey_1 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 2
-Google_results_2 <- read.csv('./Data/Google_Search_Results_Treatment_Day_2_All_New_Attempt.csv')
+Google_results_2 <- read.csv('./Data/Google_Search_Results_Treatment_Day_2_All_New_NG_Ratings.csv')
 Treatment_2 <- Treatment_Data %>% filter(Day == 'Day_2')
 Google_results_2$Article_Eval <- as.character(Google_results_2$Article_Eval)
 Google_results_2$Article_Eval <- paste0('Day_2_',Google_results_2$Article_Eval)
@@ -2343,7 +1701,7 @@ Survey_2 <- merge(Treatment_2,Google_results_2,by.x=c('ResponseId','Article_day'
 Survey_2 <- Survey_2 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 3
-Google_results_3 <- read.csv('./Data/Google_Search_Results_Treatment_Day_3_All_New_Attempt.csv')
+Google_results_3 <- read.csv('./Data/Google_Search_Results_Treatment_Day_3_All_New_NG_Ratings.csv')
 Treatment_3 <- Treatment_Data %>% filter(Day == 'Day_3')
 Google_results_3$Article_Eval <- as.character(Google_results_3$Article_Eval)
 Google_results_3$Article_Eval <- paste0('Day_3_',Google_results_3$Article_Eval)
@@ -2351,7 +1709,7 @@ Survey_3 <- merge(Treatment_3,Google_results_3,by.x=c('ResponseId','Article_day'
 Survey_3 <- Survey_3 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 4
-Google_results_4 <- read.csv('./Data/Google_Search_Results_Treatment_Day_4_All_New_Attempt.csv')
+Google_results_4 <- read.csv('./Data/Google_Search_Results_Treatment_Day_4_All_New_NG_Ratings.csv')
 Treatment_4 <- Treatment_Data %>% filter(Day == 'Day_4')
 Google_results_4$Article_Eval <- as.character(Google_results_4$Article_Eval)
 Google_results_4$Article_Eval <- paste0('Day_4_',Google_results_4$Article_Eval)
@@ -2359,7 +1717,7 @@ Survey_4 <- merge(Treatment_4,Google_results_4,by.x=c('ResponseId','Article_day'
 Survey_4 <- Survey_4 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 5
-Google_results_5 <- read.csv('./Data/Google_Search_Results_Treatment_Day_5_All_New_Attempt.csv')
+Google_results_5 <- read.csv('./Data/Google_Search_Results_Treatment_Day_5_All_New_NG_Ratings.csv')
 Treatment_5 <- Treatment_Data %>% filter(Day == 'Day_5')
 Google_results_5$Article_Eval <- as.character(Google_results_5$Article_Eval)
 Google_results_5$Article_Eval <- paste0('Day_5_',Google_results_5$Article_Eval)
@@ -2367,7 +1725,7 @@ Survey_5 <- merge(Treatment_5,Google_results_5,by.x=c('ResponseId','Article_day'
 Survey_5 <- Survey_5 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 6
-Google_results_6 <- read.csv('./Data/Google_Search_Results_Treatment_Day_6_All_New_Attempt.csv')
+Google_results_6 <- read.csv('./Data/Google_Search_Results_Treatment_Day_6_All_New_NG_Ratings.csv')
 Treatment_6 <- Treatment_Data %>% filter(Day == 'Day_6')
 Google_results_6$Article_Eval <- as.character(Google_results_6$Article_Eval)
 Google_results_6$Article_Eval <- paste0('Day_6_',Google_results_6$Article_Eval)
@@ -2375,7 +1733,7 @@ Survey_6 <- merge(Treatment_6,Google_results_6,by.x=c('ResponseId','Article_day'
 Survey_6 <- Survey_6 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 7
-Google_results_7 <- read.csv('./Data/Google_Search_Results_Treatment_Day_7_All_New_Attempt.csv')
+Google_results_7 <- read.csv('./Data/Google_Search_Results_Treatment_Day_7_All_New_NG_Ratings.csv')
 Treatment_7 <- Treatment_Data %>% filter(Day == 'Day_7')
 Google_results_7$Article_Eval <- as.character(Google_results_7$Article_Eval)
 Google_results_7$Article_Eval <- paste0('Day_7_',Google_results_7$Article_Eval)
@@ -2383,7 +1741,7 @@ Survey_7 <- merge(Treatment_7,Google_results_7,by.x=c('ResponseId','Article_day'
 Survey_7 <- Survey_7 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 8
-Google_results_8 <- read.csv('./Data/Google_Search_Results_Treatment_Day_8_All_New_Attempt.csv')
+Google_results_8 <- read.csv('./Data/Google_Search_Results_Treatment_Day_8_All_New_NG_Ratings.csv')
 Treatment_8 <- Treatment_Data %>% filter(Day == 'Day_8')
 Google_results_8$Article_Eval <- as.character(Google_results_8$Article_Eval)
 Google_results_8$Article_Eval <- paste0('Day_8_',Google_results_8$Article_Eval)
@@ -2391,7 +1749,7 @@ Survey_8 <- merge(Treatment_8,Google_results_8,by.x=c('ResponseId','Article_day'
 Survey_8 <- Survey_8 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 9
-Google_results_9 <- read.csv('./Data/Google_Search_Results_Treatment_Day_9_All_New_Attempt.csv')
+Google_results_9 <- read.csv('./Data/Google_Search_Results_Treatment_Day_9_All_New_NG_Ratings.csv')
 Treatment_9 <- Treatment_Data %>% filter(Day == 'Day_9')
 Google_results_9$Article_Eval <- as.character(Google_results_9$Article_Eval)
 Google_results_9$Article_Eval <- paste0('Day_9_',Google_results_9$Article_Eval)
@@ -2399,7 +1757,7 @@ Survey_9 <- merge(Treatment_9,Google_results_9,by.x=c('ResponseId','Article_day'
 Survey_9 <- Survey_9 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 10
-Google_results_10 <- read.csv('./Data/Google_Search_Results_Treatment_Day_10_All_New_Attempt.csv')
+Google_results_10 <- read.csv('./Data/Google_Search_Results_Treatment_Day_10_All_New_NG_Ratings.csv')
 Treatment_10 <- Treatment_Data %>% filter(Day == 'Day_10')
 Google_results_10$Article_Eval <- as.character(Google_results_10$Article_Eval)
 Google_results_10$Article_Eval <- paste0('Day_10_',Google_results_10$Article_Eval)
@@ -2407,7 +1765,7 @@ Survey_10 <- merge(Treatment_10,Google_results_10,by.x=c('ResponseId','Article_d
 Survey_10 <- Survey_10 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 11
-Google_results_11 <- read.csv('./Data/Google_Search_Results_Treatment_Day_11_All_New_Attempt.csv')
+Google_results_11 <- read.csv('./Data/Google_Search_Results_Treatment_Day_11_All_New_NG_Ratings.csv')
 Treatment_11 <- Treatment_Data %>% filter(Day == 'Day_11')
 Google_results_11$Article_Eval <- as.character(Google_results_11$Article_Eval)
 Google_results_11$Article_Eval <- paste0('Day_11_',Google_results_11$Article_Eval)
@@ -2415,7 +1773,7 @@ Survey_11 <- merge(Treatment_11,Google_results_11,by.x=c('ResponseId','Article_d
 Survey_11 <- Survey_11 %>% select(ResponseId,Day,Article_day,Category,True_Dummy,Seven_Ordinal,Four_Ordinal,Age,Gender,FC_Eval,List_Scores,ALL_URLS,Dummy_Ideology,Ideo_Congruence,Income_Score,Education_Score,Dig_Lit_Score,Prop_Unreliable,Mean_Score,Article_Lean)
 
 #Day 12
-Google_results_12 <- read.csv('./Data/Google_Search_Results_Treatment_Day_12_All_New_Attempt.csv')
+Google_results_12 <- read.csv('./Data/Google_Search_Results_Treatment_Day_12_All_New_NG_Ratings.csv')
 Treatment_12 <- Treatment_Data %>% filter(Day == 'Day_12')
 Google_results_12$Article_Eval <- as.character(Google_results_12$Article_Eval)
 Google_results_12$Article_Eval <- paste0('Day_12_',Google_results_12$Article_Eval)
@@ -2436,15 +1794,18 @@ Survey_Unrel <- rbind(Survey_1,
                       Survey_11,
                       Survey_12)
 
-#Create dataframe with this basic data:
+#Create dataframe with this basic search data:
 Combined_GS_Survey_Data <- Survey_Unrel
+
+
+########################## Create news quality data for false/misleading articles in Study 5
 
 #Create string list of news sites scores:
 Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
 Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
 Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
 
-#FILTER ONLY FALSE/MISLEADING ARTICLES
+#Filter only false/misleading articles:
 Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
 
 #Create Average Score by Respondent:
@@ -2454,16 +1815,16 @@ Respondent_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day)
 Respondent_Evaluations <- unique(Respondent_Evaluations)
 
 #Create empty matrix
-Search_Results_DF <- matrix(ncol=4)
-colnames(Search_Results_DF) <- c('ResponseId',
-                                 'Article_day',
-                                 'Mean_Score_Final',
-                                 'Prop_Unreliable_Final')
+Search_Results_FM_DF <- matrix(ncol=4)
+colnames(Search_Results_FM_DF) <- c('ResponseId',
+                                    'Article_day',
+                                    'Mean_Score_Final',
+                                    'Prop_Unreliable_Final')
 
-#For loop that create average score of news sites for each respondent:
+#Run For loop that create average score of news sites for each respondent:
 for(i in 1:nrow(Respondent_Evaluations)){
-  Resp <- Respondent_Evaluations$ResponseId[i]
-  Article <- Respondent_Evaluations$Article_day[i]  
+  Resp <- as.character(Respondent_Evaluations$ResponseId[i])
+  Article <- as.character(Respondent_Evaluations$Article_day[i])
   df_survey <- Survey_Evaluations %>% filter(ResponseId == Resp & Article_day == Article)
   All_Scores <- paste(df_survey$List_Scores,collapse=', ')
   All_Scores <- unlist(strsplit(All_Scores, split=", "))
@@ -2485,25 +1846,26 @@ for(i in 1:nrow(Respondent_Evaluations)){
                         'Mean_Score_Final',
                         'Prop_Unreliable_Final')
   
-  Search_Results_DF <- rbind(Search_Results_DF,
-                             new_df)
+  Search_Results_FM_DF <- rbind(Search_Results_FM_DF,
+                                new_df)
 }
 
 #Create dataframe:
-Search_Results_DF <- as.data.frame(Search_Results_DF)
+Search_Results_FM_DF <- as.data.frame(Search_Results_FM_DF)
 
 #Make mean score and proportion numeric variables:
-Search_Results_DF$Mean_Score_Final <- as.character(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Mean_Score_Final <- as.numeric(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.character(Search_Results_DF$Prop_Unreliable_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.numeric(Search_Results_DF$Prop_Unreliable_Final)
+Search_Results_FM_DF$Mean_Score_Final <- as.character(Search_Results_FM_DF$Mean_Score_Final)
+Search_Results_FM_DF$Mean_Score_Final <- as.numeric(Search_Results_FM_DF$Mean_Score_Final)
+Search_Results_FM_DF$Prop_Unreliable_Final <- as.character(Search_Results_FM_DF$Prop_Unreliable_Final)
+Search_Results_FM_DF$Prop_Unreliable_Final <- as.numeric(Search_Results_FM_DF$Prop_Unreliable_Final)
 
-#Create False/Misleading Article Dataframe:
-New_FM <- Search_Results_DF
+#Create Dataframe with data for False/Misleading Articles:
+New_FM <- Search_Results_FM_DF
 
 
 
-#Merged Google Search Results and survey results for each article in Study 5:
+
+########################## Create news quality data for true articles in Study 5:
 Survey_Unrel <- Combined_GS_Survey_Data
 
 #Create string list of news sites scores:
@@ -2521,17 +1883,17 @@ Respondent_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day)
 Respondent_Evaluations <- unique(Respondent_Evaluations)
 
 #Create Empty Matrix
-Search_Results_DF <- matrix(ncol=4)
-colnames(Search_Results_DF) <- c('ResponseId',
-                                 'Article_day',
-                                 'Mean_Score_Final',
-                                 'Prop_Unreliable_Final')
+Search_Results_T_DF <- matrix(ncol=4)
+colnames(Search_Results_T_DF) <- c('ResponseId',
+                                   'Article_day',
+                                   'Mean_Score_Final',
+                                   'Prop_Unreliable_Final')
 
 
 #For loop creating average mean scores and proportion unreliable:
 for(i in 1:nrow(Respondent_Evaluations)){
-  Resp <- Respondent_Evaluations$ResponseId[i]
-  Article <- Respondent_Evaluations$Article_day[i]  
+  Resp <- as.character(Respondent_Evaluations$ResponseId[i])
+  Article <- as.character(Respondent_Evaluations$Article_day[i])
   df_survey <- Survey_Evaluations %>% filter(ResponseId == Resp & Article_day == Article)
   All_Scores <- paste(df_survey$List_Scores,collapse=', ')
   All_Scores <- unlist(strsplit(All_Scores, split=", "))
@@ -2552,81 +1914,75 @@ for(i in 1:nrow(Respondent_Evaluations)){
                         'Mean_Score_Final',
                         'Prop_Unreliable_Final')
   
-  Search_Results_DF <- rbind(Search_Results_DF,
-                             new_df)
+  Search_Results_T_DF <- rbind(Search_Results_T_DF,
+                               new_df)
 }
 
 
 #Create dataframe:
-Search_Results_DF <- as.data.frame(Search_Results_DF)
+Search_Results_T_DF <- as.data.frame(Search_Results_T_DF)
 
 #Make mean scores and propotion of links that are unreliable numeric variables:
-Search_Results_DF$Mean_Score_Final <- as.character(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Mean_Score_Final <- as.numeric(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.character(Search_Results_DF$Prop_Unreliable_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.numeric(Search_Results_DF$Prop_Unreliable_Final)
+Search_Results_T_DF$Mean_Score_Final <- as.character(Search_Results_T_DF$Mean_Score_Final)
+Search_Results_T_DF$Mean_Score_Final <- as.numeric(Search_Results_T_DF$Mean_Score_Final)
+Search_Results_T_DF$Prop_Unreliable_Final <- as.character(Search_Results_T_DF$Prop_Unreliable_Final)
+Search_Results_T_DF$Prop_Unreliable_Final <- as.numeric(Search_Results_T_DF$Prop_Unreliable_Final)
 
-#Create dataframe:
-New_T <- Search_Results_DF
+#Create dataframe with true articles:
+New_T <- Search_Results_T_DF
 
-
-
-#Filter Robust Mode Articles:
-New_FM <- New_FM %>% filter(Article_day %in% Robust_Articles)
 New_T <- New_T %>% filter(Article_day %in% Robust_Articles_T)
+New_FM <- New_FM %>% filter(Article_day %in% Robust_Articles)
+
+####################################### Create Figure 2a:
 
 #Create Count of individuals that didnt see any unreliable news sites:
 True_Count_Zero <- New_T %>% filter(Prop_Unreliable_Final == 0)
 FM_Count_Zero <- New_FM %>% filter(Prop_Unreliable_Final == 0)
 
-#Create Count of individuals that saw 0-50% unreliable news sites:
-True_Count_10_25 <- New_T %>% filter(Prop_Unreliable_Final > 0 & Prop_Unreliable_Final <= 0.5)
-FM_Count_10_25 <- New_FM %>% filter(Prop_Unreliable_Final > 0 & Prop_Unreliable_Final <= 0.5)
+#Create Count of individuals that saw at lesat some unreliable news sites:
+True_Count_Above_Zero <- New_T %>% filter(Prop_Unreliable_Final > 0)
+FM_Count_Above_Zero <- New_FM %>% filter(Prop_Unreliable_Final > 0)
 
-#Create Count of individuals that more than 50% unreliable news sites:
-True_Count_25_100 <- New_T %>% filter(Prop_Unreliable_Final > 0.5)
-FM_Count_25_100 <- New_FM %>% filter(Prop_Unreliable_Final > 0.5)
 
 
 #Create matrix to plot:
-Matrix_Dist <- matrix(c(nrow(True_Count_Zero)/nrow(New_T),'0%','True',
-                        nrow(FM_Count_Zero)/nrow(New_FM),'0%','FM',
-                        nrow(True_Count_10_25)/nrow(New_T),'0-50%','True',
-                        nrow(FM_Count_10_25)/nrow(New_FM),'0-50%','FM',
-                        nrow(True_Count_25_100)/nrow(New_T),'50-100%','True',
-                        nrow(FM_Count_25_100)/nrow(New_FM),'50-100%','FM'),ncol=3,byrow=T)
+Matrix_Dist <- matrix(c(nrow(True_Count_Zero)/nrow(New_T),'Zero','True',
+                        nrow(FM_Count_Zero)/nrow(New_FM),'Zero','FM',
+                        nrow(True_Count_Above_Zero)/nrow(New_T),'One or more','True',
+                        nrow(FM_Count_Above_Zero)/nrow(New_FM),'One or more','FM'),ncol=3,byrow=T)
 
 
 Matrix_Dist <- as.data.frame(Matrix_Dist)
 colnames(Matrix_Dist) <- c('Proportion','Percentage','Article_Rating')
 Matrix_Dist$Proportion <- as.character(Matrix_Dist$Proportion)
 Matrix_Dist$Proportion <- as.numeric(Matrix_Dist$Proportion)
-Matrix_Dist$Percentage <- factor(Matrix_Dist$Percentage,levels=c('0%',
-                                                                 '0-50%',
-                                                                 '50-100%'))
+Matrix_Dist$Percentage <- factor(Matrix_Dist$Percentage,levels=c('Zero',
+                                                                 'One or more'))
+
 Matrix_Dist$Article_Rating <- factor(Matrix_Dist$Article_Rating,levels=c('True',
                                                                          'FM'))
 Matrix_Dist$Proportion <- round(Matrix_Dist$Proportion,2)
 
 
 #Produce plot:
-ggplot(Matrix_Dist, aes(fill=Article_Rating, y=Proportion, x=Percentage)) + 
+ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
   geom_bar(position="dodge", stat="identity") +
-  scale_fill_manual(values=c('royalblue2','red3'), name = "Article\nRating") +
+  scale_fill_manual(values=c('springgreen3','red3'), name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
   geom_density(adjust=3, alpha=.4) +
-  ylab('Proportion of Individuals \n') +
-  xlab('\n Percentage of News Links Returned by Search Engine\n That are From Unreliable Sources') +
+  ylab('Proportion of Individuals Whose Search Engine Results         \n Return Unreliable News by Article Type         \n') +
+  xlab('\nFact-Checker Rating of Article Individual\n Queries Search Engines About') +
   theme_bw() + 
   theme(panel.border = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
-        axis.title.x = element_text(size=22),
-        axis.text.x  = element_text(size=20),
-        axis.title.y = element_text(size=22),
-        axis.text.y  = element_text(size=20),
-        title =element_text(size=20, face='bold'),
-        legend.text = element_text(size=20)) + guides(fill=guide_legend(
+        axis.title.x = element_text(size=24),
+        axis.text.x  = element_text(size=22),
+        axis.title.y = element_text(size=24),
+        axis.text.y  = element_text(size=22),
+        title =element_text(size=18, face='bold'),
+        legend.text = element_text(size=18)) + guides(fill=guide_legend(
           keywidth=0.3,
           keyheight=0.3,
           default.unit="inch")) +
@@ -2634,7 +1990,7 @@ ggplot(Matrix_Dist, aes(fill=Article_Rating, y=Proportion, x=Percentage)) +
   ylim(0,1)
 
 #Save figure:
-ggsave('./Figures/Study_5_Bar_Graph_Google_Search_ROBUST.png',height=8,width=12)
+ggsave('./Figures/Study_5_Bar_Graph_Google_Search_ROBUST.png',height=12,width=12)
 
 ################################################################################################################
 
@@ -2658,6 +2014,8 @@ Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score >
 Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
 Control_Data <- Control_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
 
+Control_Data <- Control_Data %>% select(ResponseId,Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,Education_Score,Income_Score,Ideo_Congruence,Treatment,Dig_Lit_Score,FC_Eval)
+
 #Read CSV (Treatment Data):
 Treatment_Data <- read.csv('./Data/Treatment_Data_Study_5.csv')
 Treatment_Data$Link_1 <- NULL
@@ -2671,37 +2029,35 @@ Treatment_Data <- Treatment_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Sco
 Treatment_Data <- Treatment_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
 Treatment_Data <- Treatment_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
 
+Treatment_Data <- Treatment_Data %>% select(ResponseId,Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,Education_Score,Income_Score,Ideo_Congruence,Treatment,Dig_Lit_Score,FC_Eval)
+
 #Merge data
-All_Data <- rbind(Treatment_Data,Control_Data)
+Study_5_df <- rbind(Treatment_Data,Control_Data)
 
 #Filter only false/misleading articles:
-FM_Data <- All_Data %>% filter(FC_Eval == 'FM')
-
-#Filter Robust Mode Articles:
-FM_Data <- FM_Data %>% filter(Article_day %in% Robust_Articles)
+Study_5_df <- Study_5_df %>% filter(FC_Eval == 'FM')
+Study_5_df_robust <- Study_5_df %>% filter(Article_day %in% Robust_Articles)
 
 #Create control and treatment dataframes
-C_Data <- FM_Data %>% filter(Treatment == 0)
-T_Data <- FM_Data %>% filter(Treatment == 1)
-
+Study_5_Control_df <- Study_5_df %>% filter(Treatment == 0)
+Study_5_Treatment_df <- Study_5_df %>% filter(Treatment == 1)
 
 #Run linear regression and produCce coefficient values:
-fit_1_1 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=FM_Data)
+fit_5_1_robust = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=Study_5_df_robust)
 #Produce confidence intervals with clusterd standard errors:
-CI_1_1 = coefci(fit_1_1, vcov. = vcovCL(fit_1_1, cluster = list(FM_Data$ResponseId), type = "HC0"))
+CI_5_1_robust = coefci(fit_5_1_robust, vcov. = vcovCL(fit_5_1_robust, cluster = list(Study_5_df_robust$ResponseId,Study_5_df_robust$Article_day), type = "HC0"))
 
 #Run linear regression and produce coefficient values:
-fit_1_2 = glm(Four_Ordinal ~Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=FM_Data)
+fit_5_2_robust = glm(Four_Ordinal ~Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=Study_5_df_robust)
 #Produce confidence intervals with clusterd standard errors:
-CI_1_2 = coefci(fit_1_2, vcov. = vcovCL(fit_1_2, cluster = list(FM_Data$ResponseId), type = "HC0"))
+CI_5_2_robust = coefci(fit_5_2_robust, vcov. = vcovCL(fit_5_2_robust, cluster = list(Study_5_df_robust$ResponseId,Study_5_df_robust$Article_day), type = "HC0"))
 
 #Run linear regression and produce coefficient values:
-fit_1_3 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=FM_Data)
+fit_5_3_robust = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=Study_5_df_robust)
 #Produce confidence intervals with clusterd standard errors:
-CI_1_3 = coefci(fit_1_3, vcov. = vcovCL(fit_1_3, cluster = list(FM_Data$ResponseId), type = "HC0"))
+CI_5_3_robust = coefci(fit_5_3_robust, vcov. = vcovCL(fit_5_3_robust, cluster = list(Study_5_df_robust$ResponseId,Study_5_df_robust$Article_day), type = "HC0"))
 
-
-#Figure
+#Create Figure 2b
 
 #Create vector with measures:
 Coef_names <- c('Rate as True',
@@ -2709,19 +2065,19 @@ Coef_names <- c('Rate as True',
                 'Ordinal Scale (7)')
 
 #Create vector with coefficients:
-Coefficients <- c(fit_1_1$coefficients[2]/sd(FM_Data$True_Dummy),
-                  fit_1_2$coefficients[2]/sd(FM_Data$Four_Ordinal),
-                  fit_1_3$coefficients[2]/sd(FM_Data$Seven_Ordinal))
+Coefficients <- c(fit_5_1_robust$coefficients[2]/sd(Study_5_Control_df$True_Dummy),
+                  fit_5_2_robust$coefficients[2]/sd(Study_5_Control_df$Four_Ordinal),
+                  fit_5_3_robust$coefficients[2]/sd(Study_5_Control_df$Seven_Ordinal))
 
 #Create upper confidence intervals:
-CI_Upper <- c(CI_1_1[2,2]/sd(FM_Data$True_Dummy),
-              CI_1_2[2,2]/sd(FM_Data$Four_Ordinal),
-              CI_1_3[2,2]/sd(FM_Data$Seven_Ordinal))            
+CI_Upper <- c(CI_5_1_robust[2,2]/sd(Study_5_Control_df$True_Dummy),
+              CI_5_2_robust[2,2]/sd(Study_5_Control_df$Four_Ordinal),
+              CI_5_3_robust[2,2]/sd(Study_5_Control_df$Seven_Ordinal))            
 
 #Create lower confidence intervals:
-CI_Lower <- c(CI_1_1[2,1]/sd(FM_Data$True_Dummy),
-              CI_1_2[2,1]/sd(FM_Data$Four_Ordinal),
-              CI_1_3[2,1]/sd(FM_Data$Seven_Ordinal))           
+CI_Lower <- c(CI_5_1_robust[2,1]/sd(Study_5_Control_df$True_Dummy),
+              CI_5_2_robust[2,1]/sd(Study_5_Control_df$Four_Ordinal),
+              CI_5_3_robust[2,1]/sd(Study_5_Control_df$Seven_Ordinal))           
 
 #Create data frame:
 d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
@@ -2760,7 +2116,7 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
         legend.title = element_text(size=16),
         legend.text = element_text(size=14)) +
   ylim(-0.13,0.7) +
-  scale_x_continuous(" \n",breaks=c(0.3,0.2,0.1),labels=Coef_names,limits=c(0.0,0.4)) +
+  scale_x_continuous("Perceived Veracity Scale \n",breaks=c(0.3,0.2,0.1),labels=Coef_names,limits=c(0.0,0.4)) +
   coord_flip()
 
 #Save plot:
@@ -2772,508 +2128,84 @@ ggsave('./Figures/Study_5_1_ROBUST.png',height=8,width=8)
 
 ################################################################################################################
 
-#Filter DT Data by robust mode:
-Combined_GS_Survey_Data <- Combined_GS_Survey_Data %>% filter(Article_day %in% Robust_Articles)
+#filter responses:
+Study_5_subset_1$Article_day <- gsub('Article_day','',Study_5_subset_1$Article_day)
+Robust_Study_5_subset_1 <- Study_5_subset_1 %>% filter(Article_day %in% Robust_Articles)
 
-#Treatment Only - Subset By Quality of Google Results:
-Survey_Unrel <- Combined_GS_Survey_Data
-
-#Create string list of news sites scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
-
-
-
-#Create Average Score by Respondent:
-Survey_Evaluations <- Survey_Unrel %>% filter(!is.na(Mean_Score))
-Survey_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day,List_Scores)
-Respondent_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day)
-Respondent_Evaluations <- unique(Respondent_Evaluations)
-
-#Filter only responses that we have search result data for:
-Survey_Unrel$ALL_URLS <- as.character(Survey_Unrel$ALL_URLS)
-Survey_Unrel$GS_Results <- ifelse(!is.na(Survey_Unrel$Mean_Scores) | nchar(Survey_Unrel$ALL_URLS) > 2,1,0)
-Survey_Unrel <- Survey_Unrel %>% filter(GS_Results == 1)
-
-
-#Create Dummy Variable for People who only saw very reliable news sites in Google Search Results (85):
-
-Final_Mat <- matrix(ncol=5)
-Only_Rel_URLs <- c()
-Some_Unrel_URLs <- c()
-Total_Rel_Sources <- c()
-Total_Unrel_Sources <- c()
-Total_Sources <- c()
-for(i in 1:nrow(Survey_Unrel)){
-  All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Rel_Sources = 0
-  Unrel_Sources = 0
-  Tot_Sources = 0
-  if(length(All_Scores) == 0){
-    All_Scores = NA} else{
-      for(x in 1:length(All_Scores)){
-        Tot_Sources = Tot_Sources + 1
-        if(All_Scores[x] > 85){
-          Rel_Sources = Rel_Sources + 1
-        } else{
-          if(All_Scores[x] < 60){
-            Unrel_Sources = Unrel_Sources + 1
-          }
-        }
-      } 
-      if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
-        Only_Rel_Sources = 1
-      } else{
-        Only_Rel_Sources = 0
-      }
-      if(Unrel_Sources > 0){
-        Some_Unrel_Sources = 1
-      } else{
-        Some_Unrel_Sources = 0
-      }
-    }
-  Only_Rel_URLs = c(Only_Rel_URLs,Only_Rel_Sources)
-  Some_Unrel_URLs = c(Some_Unrel_URLs,Some_Unrel_Sources)
-  Total_Rel_Sources = c(Total_Rel_Sources,Rel_Sources)
-  Total_Unrel_Sources = c(Total_Unrel_Sources,Unrel_Sources)
-  Total_Sources = c(Total_Sources,Tot_Sources)
-}
-
-#Apply data to dataset:
-Survey_Unrel$Only_Rel_URLs <- Only_Rel_URLs
-Survey_Unrel$Some_Unrel_URLs <- Some_Unrel_URLs
-Survey_Unrel$Total_Rel_Sources <- Total_Rel_Sources
-Survey_Unrel$Total_Unrel_Sources <- Total_Unrel_Sources
-Survey_Unrel$Total_Sources <- Total_Sources
-
-
-#Filter only responses who only saw very reliable news sites in Google Search Results (85)
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Only unique responses:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-
-#Pull control data:
-Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
-
-#Merge data
-Control_Data <- merge(Control_Data,FC_Ideo_Data,by='Article_day')
-
-#Create Ideological Perspective data:
-Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
-Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
-Control_Data <- Control_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
-
-#Only keep those who had the web-tracking extension on while they evaluated articles:
-Control_Data$Article_day <- as.character(Control_Data$Article_day)
-Control_WT_Data <- read.csv('./Data/output_Control_Survey_2.csv')
-Control_WT_Data$Article_day <- as.character(Control_WT_Data$Article_day)
-Control_WT_Data$X <- NULL
-Control_WT_Data <- unique(Control_WT_Data)
-colnames(Control_WT_Data)[1] <- 'ResponseId'
-Control_Data <- merge(Control_Data,Control_WT_Data,by=c('ResponseId','Article_day'))
-
-#Filter false/misleading articles:
-Control_Data <- Control_Data %>% filter(FC_Eval == 'FM')
-Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Control_Data$Treatment <- 0
-
-#Filter Control Data by robust mode:
-Control_Data <- Control_Data %>% filter(Article_day %in% Robust_Articles)
-
-#Merge treatment and control articles:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
+#Run OLS Model with clustered standard errors:
+fit_1_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Study_5_subset_1)
+#Produce confidence intervals with clustered standard errors:
+CI_1_1 <- confint(fit_1_1)
 
 #Run model:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+fit_1_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Study_5_subset_1)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_1_2 = confint(fit_1_2)
 
 #Run model:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+fit_1_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Study_5_subset_1)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run model:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_1_3 = confint(fit_1_3)
 
 #Create empty matrix:
-Final_Mat <- matrix(ncol=5)
+Fig_2c_Mat <- matrix(ncol=5)
 
 #Merge data:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Only Very Reliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Only Very Reliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Only Very Reliable News'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
+New_matr <- matrix(c(round(fit_1_1$coefficients[1]/sd(Robust_Study_5_subset_1$Seven_Ordinal),4),round(CI_1_1[1,1]/sd(Robust_Study_5_subset_1$Seven_Ordinal),4),round(CI_1_1[1,2]/sd(Robust_Study_5_subset_1$Seven_Ordinal),4),'Ordinal (7)','Only Very Reliable News',
+                     round(fit_1_2$coefficients[1]/sd(Robust_Study_5_subset_1$Four_Ordinal),4),round(CI_1_2[1,1]/sd(Robust_Study_5_subset_1$Four_Ordinal),4),round(CI_1_2[1,2]/sd(Robust_Study_5_subset_1$Four_Ordinal),4),'Ordinal (4)','Only Very Reliable News',
+                     round(fit_1_3$coefficients[1]/sd(Robust_Study_5_subset_1$True_Dummy),4),round(CI_1_3[1,1]/sd(Robust_Study_5_subset_1$True_Dummy),4),round(CI_1_3[1,2]/sd(Robust_Study_5_subset_1$True_Dummy),4),'True (Dummy)','Only Very Reliable News'),ncol=5,byrow=T)
+Fig_2c_Mat <- rbind(Fig_2c_Mat,New_matr)
 
 
+#filter responses:
+Study_5_subset_2$Article_day <- gsub('Article_day','',Study_5_subset_2$Article_day)
+Robust_Study_5_subset_2 <- Study_5_subset_2 %>% filter(Article_day %in% Robust_Articles)
 
 
+#Run OLS Model with clustered standard errors:
+fit_2_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Study_5_subset_2)
+#Produce confidence intervals with clustered standard errors:
+CI_2_1 <- confint(fit_2_1)
 
-#Filter only responses who saw some unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
+#Run model:
+fit_2_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Study_5_subset_2)
+#Produce confidence intervals with clustered standard errors:
+CI_2_2 = confint(fit_2_2)
 
-#Select Variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-#Unique variables:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
+#Run model:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Study_5_subset_2)
+#Produce confidence intervals with clustered standard errors:
+CI_2_3 = confint(fit_2_3)
+
 
 #Merge data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NAs
-New_Data <- na.omit(New_Data)
+New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Robust_Study_5_subset_2$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_Study_5_subset_2$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_Study_5_subset_2$Seven_Ordinal),4),'Ordinal (7)','Some Very Unreliable News',
+                     round(fit_2_2$coefficients[1]/sd(Robust_Study_5_subset_2$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_Study_5_subset_2$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_Study_5_subset_2$Four_Ordinal),4),'Ordinal (4)','Some Very Unreliable News',
+                     round(fit_2_3$coefficients[1]/sd(Robust_Study_5_subset_2$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_Study_5_subset_2$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_Study_5_subset_2$True_Dummy),4),'True (Dummy)','Some Very Unreliable News'),ncol=5,byrow=T)
 
-
-
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-summary(fit_2_1)
-#Produce clustere standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-summary(fit_2_2)
-#Produce clustere standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-summary(fit_2_3)
-#Produce clustere standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Some Very Unreliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Some Very Unreliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Some Very Unreliable News'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-
-#Filter only responses who didnt see an unreliable or reliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Total_Sources == 0)
-
-#Select Variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-#Unique variables:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-
-#Merge data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-summary(fit_2_1)
-#Produce clustere standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-summary(fit_2_2)
-#Produce clustere standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-summary(fit_2_3)
-#Produce clustere standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Merge data with matrix:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','No News Sites',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','No News Sites',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','No News Sites'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
+Fig_2c_Mat <- rbind(Fig_2c_Mat,New_matr)
 
 
 #Transform matrix into dataframe:
-Final_Mat <- as.data.frame(Final_Mat)
+Fig_2c_Mat <- as.data.frame(Fig_2c_Mat)
 
-#NAme matrix:
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
+#Name matrix:
+colnames(Fig_2c_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
 
 #Remove NAs
-Final_Mat <- na.omit(Final_Mat)
+Fig_2c_Mat <- na.omit(Fig_2c_Mat)
 
 #Clean up matrix:
-Final_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6,2.0,2.1,2.2)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
-
+Fig_2c_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6)
+Fig_2c_Mat$Coef <- as.character(Fig_2c_Mat$Coef)
+Fig_2c_Mat$Coef <- as.numeric(Fig_2c_Mat$Coef)
+Fig_2c_Mat$Upp_Conf <- as.character(Fig_2c_Mat$Upp_Conf)
+Fig_2c_Mat$Upp_Conf <- as.numeric(Fig_2c_Mat$Upp_Conf)
+Fig_2c_Mat$Low_Conf <- as.character(Fig_2c_Mat$Low_Conf)
+Fig_2c_Mat$Low_Conf <- as.numeric(Fig_2c_Mat$Low_Conf)
 
 #Produce plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Measure, shape=Measure),size=4) +
-  geom_linerange(aes(min = Low_Conf, 
-                     max = Upp_Conf, 
-                     color = Measure),
-                 size=1.5) +
-  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
-  ylab("\n Effect of Searching for Information Quality on Belief in Misinformation\n Dependent on Quality of Information Returned from Google Search Results \n(1 unit is 1 standard deviation of that measure) ") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=16),
-        axis.text.x  = element_text(size=16),
-        axis.title.y = element_text(size=16),
-        axis.text.y  = element_text(size=16),
-        plot.title = element_text(size = 16),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14)) +
-  ylim(-0.5,0.5) +
-  scale_x_continuous(" \n",breaks=c(2.1,1.5,0.9),labels=c('No News Sites',
-                                                          'Some Very Unreliable News',
-                                                          'Only Very Reliable News'),limits=c(0.5,2.5)) +
-  coord_flip()
-
-#Save Figure:
-ggsave('./Figures/Coefs_CIs_ROBUST.png',height=12,width=10)
-
-
-
-################################################################################################################
-
-########################################## Figure 2d: Coefs_CIs_2_ROBUST.png ##########################################
-
-################################################################################################################
-
-#Treatment Only - Subset By Quality of Google Results:
-Survey_Unrel <- Combined_GS_Survey_Data
-
-#Create string list of news sites scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
-
-
-#Pull average reliability score of news viewed by respondents:
-Mean_Scores_2 = c()
-Rel_Maj_Dummy = c()
-for(i in 1:nrow(Survey_Unrel)){
-  All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Rel_Sources = 0
-  if(length(All_Scores) == 0){
-    All_Scores = NA
-    Rel_Maj_Dummy = c(Rel_Maj_Dummy,0)} else{
-      for(x in 1:length(All_Scores)){
-        if(All_Scores[x] > 59.5){
-          Rel_Sources = Rel_Sources + 1
-        }
-      } 
-      if(Rel_Sources > 5){
-        Rel_Maj_Dummy = c(Rel_Maj_Dummy,1)
-      } else{
-        Rel_Maj_Dummy = c(Rel_Maj_Dummy,0)
-      }
-    }
-  Mean_Scores_2 = c(Mean_Scores_2,mean(All_Scores))
-}
-
-
-#Create mean proportion and average reliability scores of news viewed:
-Survey_Unrel$Mean_Scores <- Mean_Scores_2
-Survey_Unrel_Mean <- Survey_Unrel %>% dplyr::group_by(ResponseId,Article_day) %>% dplyr::summarise(Mean_All_Scores = mean(Mean_Scores,na.rm=T))
-Survey_Unrel_Prop <- Survey_Unrel %>% dplyr::group_by(ResponseId,Article_day) %>% dplyr::summarise(Mean_Prop_Unrel = mean(Prop_Unreliable,na.rm=T))
-
-#Merge:
-Survey_D <- merge(Survey_Unrel_Mean,Survey_Unrel_Prop,by=c('ResponseId','Article_day'))
-Survey_Unrel <- merge(Survey_Unrel,Survey_D,by=c('ResponseId','Article_day'))
-Survey_Unrel <- Survey_Unrel %>% filter(Total_Sources != 0)
-
-
-#Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores < quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[2])
-
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
-
-#Run Model:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Merge Coeficients and confidence intervals:
-
-Final_Mat <- matrix(ncol=5)
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','0-25%',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','0-25%',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','0-25%'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores >= quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[2] & Mean_All_Scores < quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[3])
-
-
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
-
-#Run Model:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Merge Coeficients and confidence intervals:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','25-50%',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','25-50%',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','25-50%'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-
-#Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores >= quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[3] & Mean_All_Scores < quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[4])
-
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
-
-#Run Model:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','50-75%',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','50-75%',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','50-75%'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Filter by quartile:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Mean_All_Scores >= quantile(Survey_Unrel$Mean_All_Scores,na.rm=T)[4] & Mean_All_Scores <= 100)
-
-#Select variables
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Merge Treatment and Control data
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-#Remove NA variables:
-New_Data <- na.omit(New_Data)
-
-#Run Model:
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model:
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence interval with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','75-100%',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','75-100%',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','75-100%'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Create dataframe to produce plot
-Final_Mat <- as.data.frame(Final_Mat)
-Final_Mat <- na.omit(Final_Mat)
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
-Final_Mat <- na.omit(Final_Mat)
-Final_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6,2.0,2.1,2.2,2.6,2.7,2.8)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
-
-
-#Produce Plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
+ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
   geom_point(aes(color = Measure, shape=Measure),size=4) +
@@ -3292,11 +2224,176 @@ ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
         legend.title = element_text(size=16),
         legend.text = element_text(size=14)) +
   ylim(-0.7,0.7) +
-  scale_x_continuous(" \n",breaks=c(2.7,2.1,1.5,0.9),labels=c('75-100%',
-                                                              '50-75%',
-                                                              '25-50%',
-                                                              '0-25%'),limits=c(0.5,3.0)) +
+  scale_x_continuous("Type of News Returned by Google Search Engine \n",breaks=c(1.5,0.9),labels=c('Some Unreliable News',
+                                                                                                   'Only Reliable News'),limits=c(0.5,2.0)) +
   coord_flip()
+
+
+
+#Save Figure:
+ggsave('./Figures/Coefs_CIs_ROBUST.png',height=12,width=10)
+
+
+
+################################################################################################################
+
+########################################## Figure 2d: Coefs_CIs_2_ROBUST.png ##########################################
+
+################################################################################################################
+
+
+#Filter responses
+Data_subset_lowest$Article_day <- gsub('Article_day','',Data_subset_lowest$Article_day)
+Robust_Data_subset_lowest <- Data_subset_lowest %>% filter(Article_day %in% Robust_Articles)
+
+#Run OLS Model with clustered standard errors:
+fit_1_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_1_1 <- confint(fit_1_1)
+
+#Run model:
+fit_1_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_1_2 = confint(fit_1_2)
+
+#Run model:
+fit_1_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_1_3 = confint(fit_1_3)
+
+
+#Merge Coeficients and confidence intervals:
+
+Fig_2d_Mat <- matrix(ncol=5)
+New_matr <- matrix(c(round(fit_1_1$coefficients[1]/sd(Robust_Data_subset_lowest$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_Data_subset_lowest$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_Data_subset_lowest$Seven_Ordinal),4),'Ordinal (7)','0-25%',
+                     round(fit_1_2$coefficients[1]/sd(Robust_Data_subset_lowest$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_Data_subset_lowest$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_Data_subset_lowest$Four_Ordinal),4),'Ordinal (4)','0-25%',
+                     round(fit_1_3$coefficients[1]/sd(Robust_Data_subset_lowest$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_Data_subset_lowest$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_Data_subset_lowest$True_Dummy),4),'True (Dummy)','0-25%'),ncol=5,byrow=T)
+#Bind new data:
+Fig_2d_Mat <- rbind(Fig_2d_Mat,New_matr)
+
+
+#filter responses:
+Data_subset_2nd_lowest$Article_day <- gsub('Article_day','',Data_subset_2nd_lowest$Article_day)
+Robust_Data_subset_2nd_lowest <- Data_subset_2nd_lowest %>% filter(Article_day %in% Robust_Articles)
+
+#Run OLS Model with clustered standard errors:
+fit_2_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_2nd_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_2_1 <- confint(fit_2_1)
+
+#Run model:
+fit_2_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_2nd_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_2_2 = confint(fit_2_2)
+
+#Run model:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_2nd_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_2_3 = confint(fit_2_3)
+
+#Merge Coeficients and confidence intervals:
+New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Robust_Data_subset_2nd_lowest$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_Data_subset_2nd_lowest$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_Data_subset_2nd_lowest$Seven_Ordinal),4),'Ordinal (7)','25-50%',
+                     round(fit_2_2$coefficients[1]/sd(Robust_Data_subset_2nd_lowest$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_Data_subset_2nd_lowest$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_Data_subset_2nd_lowest$Four_Ordinal),4),'Ordinal (4)','25-50%',
+                     round(fit_2_3$coefficients[1]/sd(Robust_Data_subset_2nd_lowest$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_Data_subset_2nd_lowest$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_Data_subset_2nd_lowest$True_Dummy),4),'True (Dummy)','25-50%'),ncol=5,byrow=T)
+
+#Bind new data:
+Fig_2d_Mat <- rbind(Fig_2d_Mat,New_matr)
+
+
+#filter responses:
+Data_subset_3rd_lowest$Article_day <- gsub('Article_day','',Data_subset_3rd_lowest$Article_day)
+Robust_Data_subset_3rd_lowest <- Data_subset_3rd_lowest %>% filter(Article_day %in% Robust_Articles)
+
+
+#Run OLS Model with clustered standard errors:
+fit_3_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_3rd_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_3_1 <- confint(fit_3_1)
+
+#Run model:
+fit_3_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_3rd_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_3_2 = confint(fit_3_2)
+
+#Run model:
+fit_3_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_3rd_lowest)
+#Produce confidence intervals with clustered standard errors:
+CI_3_3 = confint(fit_3_3)
+
+
+New_matr <- matrix(c(round(fit_3_1$coefficients[1]/sd(Robust_Data_subset_3rd_lowest$Seven_Ordinal),4),round(CI_3_1[1,1]/sd(Robust_Data_subset_3rd_lowest$Seven_Ordinal),4),round(CI_3_1[1,2]/sd(Robust_Data_subset_3rd_lowest$Seven_Ordinal),4),'Ordinal (7)','50-75%',
+                     round(fit_3_2$coefficients[1]/sd(Robust_Data_subset_3rd_lowest$Four_Ordinal),4),round(CI_3_2[1,1]/sd(Robust_Data_subset_3rd_lowest$Four_Ordinal),4),round(CI_3_2[1,2]/sd(Robust_Data_subset_3rd_lowest$Four_Ordinal),4),'Ordinal (4)','50-75%',
+                     round(fit_3_3$coefficients[1]/sd(Robust_Data_subset_3rd_lowest$True_Dummy),4),round(CI_3_3[1,1]/sd(Robust_Data_subset_3rd_lowest$True_Dummy),4),round(CI_3_3[1,2]/sd(Robust_Data_subset_3rd_lowest$True_Dummy),4),'True (Dummy)','50-75%'),ncol=5,byrow=T)
+#Bind new data:
+Fig_2d_Mat <- rbind(Fig_2d_Mat,New_matr)
+
+
+#filter responses:
+Data_subset_highest$Article_day <- gsub('Article_day','',Data_subset_highest$Article_day)
+Robust_Data_subset_highest <- Data_subset_highest %>% filter(Article_day %in% Robust_Articles)
+
+
+fit_4_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_highest)
+#Produce confidence intervals with clustered standard errors:
+CI_4_1 <- confint(fit_4_1)
+
+#Run model:
+fit_4_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_highest)
+#Produce confidence intervals with clustered standard errors:
+CI_4_2 = confint(fit_4_2)
+
+#Run model:
+fit_4_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_Data_subset_highest)
+#Produce confidence intervals with clustered standard errors:
+CI_4_3 = confint(fit_4_3)
+
+New_matr <- matrix(c(round(fit_4_1$coefficients[1]/sd(Robust_Data_subset_highest$Seven_Ordinal),4),round(CI_4_1[1,1]/sd(Robust_Data_subset_highest$Seven_Ordinal),4),round(CI_4_1[1,2]/sd(Robust_Data_subset_highest$Seven_Ordinal),4),'Ordinal (7)','75-100%',
+                     round(fit_4_2$coefficients[1]/sd(Robust_Data_subset_highest$Four_Ordinal),4),round(CI_4_2[1,1]/sd(Robust_Data_subset_highest$Four_Ordinal),4),round(CI_4_2[1,2]/sd(Robust_Data_subset_highest$Four_Ordinal),4),'Ordinal (4)','75-100%',
+                     round(fit_4_3$coefficients[1]/sd(Robust_Data_subset_highest$True_Dummy),4),round(CI_4_3[1,1]/sd(Robust_Data_subset_highest$True_Dummy),4),round(CI_4_3[1,2]/sd(Robust_Data_subset_highest$True_Dummy),4),'True (Dummy)','75-100%'),ncol=5,byrow=T)
+#Bind new data:
+Fig_2d_Mat <- rbind(Fig_2d_Mat,New_matr)
+
+
+#Create dataframe to produce plot
+Fig_2d_Mat <- as.data.frame(Fig_2d_Mat)
+Fig_2d_Mat <- na.omit(Fig_2d_Mat)
+colnames(Fig_2d_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
+Fig_2d_Mat <- na.omit(Fig_2d_Mat)
+Fig_2d_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6,2.0,2.1,2.2,2.6,2.7,2.8)
+Fig_2d_Mat$Coef <- as.character(Fig_2d_Mat$Coef)
+Fig_2d_Mat$Coef <- as.numeric(Fig_2d_Mat$Coef)
+Fig_2d_Mat$Upp_Conf <- as.character(Fig_2d_Mat$Upp_Conf)
+Fig_2d_Mat$Upp_Conf <- as.numeric(Fig_2d_Mat$Upp_Conf)
+Fig_2d_Mat$Low_Conf <- as.character(Fig_2d_Mat$Low_Conf)
+Fig_2d_Mat$Low_Conf <- as.numeric(Fig_2d_Mat$Low_Conf)
+
+
+#Produce Plot:
+ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(aes(color = Measure, shape=Measure),size=4) +
+  geom_linerange(aes(min = Low_Conf, 
+                     max = Upp_Conf, 
+                     color = Measure),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
+  ylab("\n Effect of Searching for Information Quality on Belief in Misinformation\n Dependent on Quality of Information Returned from Google Search Results \n(1 unit is 1 standard deviation of that measure) ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=16),
+        axis.text.x  = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        plot.title = element_text(size = 16),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=14)) +
+  ylim(-0.6,0.7) +
+  scale_x_continuous("Quartile of News Quality Returned by Google Search Engine \n",breaks=c(2.7,2.1,1.5,0.9),labels=c('75-100%',
+                                                                                                                       '50-75%',
+                                                                                                                       '25-50%',
+                                                                                                                       '0-25%'),limits=c(0.5,3.0)) +
+  coord_flip()
+
 
 #Save Figure:
 ggsave('./Figures/Coefs_CIs_2_ROBUST.png',height=12,width=10)
@@ -3309,108 +2406,42 @@ ggsave('./Figures/Coefs_CIs_2_ROBUST.png',height=12,width=10)
 
 ################################################################################################################
 
+Treatment_rel_data <- merge(T_Data,Data_Scores,by=c('ResponseId','Article_day'))
+Treatment_rel_data$Unreliable_Dummy <- ifelse(Treatment_rel_data$Tot_Unreliable > 1,1,0)
 
-#Treatment Only - Subset By Quality of Google Results:
-Survey_Unrel <- Combined_GS_Survey_Data
-
-#Create string list of news sites scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
+#Filter Robust Mode Articles:
+Treatment_rel_data <- Treatment_rel_data %>% filter(Article_day %in% Robust_Articles)
 
 
 
-#Create Average Score by Respondent:
-Survey_Evaluations <- Survey_Unrel %>% filter(!is.na(Mean_Score))
-Survey_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day,List_Scores)
-Respondent_Evaluations <- Survey_Evaluations %>% select(ResponseId,Article_day)
-Respondent_Evaluations <- unique(Respondent_Evaluations)
+#Run model:
+fit_unrel_dumm = feols(Unreliable_Dummy ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Dig_Lit_Score|Article_day, cluster = ~ResponseId+Article_day, data = Treatment_rel_data)
+#Produce confidence intervals with clustered standard errors:
+CI_unrel_dumm = confint(fit_unrel_dumm)
 
-#Blank matrix:
-Search_Results_DF <- matrix(ncol=4)
-colnames(Search_Results_DF) <- c('ResponseId',
-                                 'Article_day',
-                                 'Mean_Score_Final',
-                                 'Prop_Unreliable_Final')
-
-#For loop that creates average reliability by Google Search engine results:
-for(i in 1:nrow(Respondent_Evaluations)){
-  Resp <- Respondent_Evaluations$ResponseId[i]
-  Article <- Respondent_Evaluations$Article_day[i]  
-  df_survey <- Survey_Evaluations %>% filter(ResponseId == Resp & Article_day == Article)
-  All_Scores <- paste(df_survey$List_Scores,collapse=', ')
-  All_Scores <- unlist(strsplit(All_Scores, split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Mean_Reliability <- mean(All_Scores)
-  Total_links <- length(All_Scores)
-  Total_Unrel <- 0
-  for(x in 1:length(All_Scores)){
-    if(All_Scores[x] < 60){
-      Total_Unrel = Total_Unrel + 1
-    }
-  }
-  Proportion_Unrel = Total_Unrel/Total_links
-  
-  new_df <- matrix(c(Resp,Article,Mean_Reliability,Proportion_Unrel),ncol=4)
-  colnames(new_df) <- c('ResponseId',
-                        'Article_day',
-                        'Mean_Score_Final',
-                        'Prop_Unreliable_Final')
-  
-  
-  Search_Results_DF <- rbind(Search_Results_DF,
-                             new_df)
-}
-
-
-
-#Add mean reliability scores and proportion of unreliable news:
-Search_Results_DF <- as.data.frame(Search_Results_DF)
-Search_Results_DF$Mean_Score_Final <- as.character(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Mean_Score_Final <- as.numeric(Search_Results_DF$Mean_Score_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.character(Search_Results_DF$Prop_Unreliable_Final)
-Search_Results_DF$Prop_Unreliable_Final <- as.numeric(Search_Results_DF$Prop_Unreliable_Final)
-
-#Select from treatment data:
-Survey_Unrel_1 <- Survey_Unrel %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-
-#Merge survey and web-tracking data:
-Search_Survey <- merge(Survey_Unrel_1,Search_Results_DF,by=c('ResponseId','Article_day'))
-
-#Create unreliable news exposure dummy variable:
-Search_Survey$Unreliable_Dummy <- ifelse(Search_Survey$Prop_Unreliable_Final > 0,1,0)
-
-fit_2_3 = glm(Unreliable_Dummy ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence +Dig_Lit_Score + Article_day,data=Search_Survey)
-#Produce cionfidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(Search_Survey$ResponseId,Search_Survey$Article_day), type = "HC0"))
-
-
-
-
+Search_Survey <- Treatment_rel_data
 
 #Create dataframe with coefficients and confidence intervals:
-Coefficients <- c(round(fit_2_3$coefficients[2]*sd(Search_Survey$Age),4),
-                  round(fit_2_3$coefficients[3]*sd(Search_Survey$Gender),4),
-                  round(fit_2_3$coefficients[4]*sd(Search_Survey$Education_Score),4),
-                  round(fit_2_3$coefficients[5]*sd(Search_Survey$Income_Score),4),
-                  round(fit_2_3$coefficients[6]*sd(Search_Survey$Ideo_Congruence),4),
-                  round(fit_2_3$coefficients[7]*sd(Search_Survey$Dig_Lit_Score),4))
+Coefficients <- c(round(fit_unrel_dumm$coefficients[1]*sd(Search_Survey$Age),4),
+                  round(fit_unrel_dumm$coefficients[2]*sd(Search_Survey$Gender),4),
+                  round(fit_unrel_dumm$coefficients[3]*sd(Search_Survey$Education_Score),4),
+                  round(fit_unrel_dumm$coefficients[4]*sd(Search_Survey$Income_Score),4),
+                  round(fit_unrel_dumm$coefficients[5]*sd(Search_Survey$Ideo_Congruence),4),
+                  round(fit_unrel_dumm$coefficients[6]*sd(Search_Survey$Dig_Lit_Score),4))
 
-CI_Upper <- c(round(CI_2_3[2,1]*sd(Search_Survey$Age),4),
-              round(CI_2_3[3,1]*sd(Search_Survey$Gender),4),
-              round(CI_2_3[4,1]*sd(Search_Survey$Education_Score),4),
-              round(CI_2_3[5,1]*sd(Search_Survey$Income_Score),4),
-              round(CI_2_3[6,1]*sd(Search_Survey$Ideo_Congruence),4),
-              round(CI_2_3[7,1]*sd(Search_Survey$Dig_Lit_Score),4))            
+CI_Upper <- c(round(CI_unrel_dumm[1,1]*sd(Search_Survey$Age),4),
+              round(CI_unrel_dumm[2,1]*sd(Search_Survey$Gender),4),
+              round(CI_unrel_dumm[3,1]*sd(Search_Survey$Education_Score),4),
+              round(CI_unrel_dumm[4,1]*sd(Search_Survey$Income_Score),4),
+              round(CI_unrel_dumm[5,1]*sd(Search_Survey$Ideo_Congruence),4),
+              round(CI_unrel_dumm[6,1]*sd(Search_Survey$Dig_Lit_Score),4))            
 
-CI_Lower <- c(round(CI_2_3[2,2]*sd(Search_Survey$Age),4),
-              round(CI_2_3[3,2]*sd(Search_Survey$Gender),4),
-              round(CI_2_3[4,2]*sd(Search_Survey$Education_Score),4),
-              round(CI_2_3[5,2]*sd(Search_Survey$Income_Score),4),
-              round(CI_2_3[6,2]*sd(Search_Survey$Ideo_Congruence),4),
-              round(CI_2_3[7,2]*sd(Search_Survey$Dig_Lit_Score),4))           
+CI_Lower <- c(round(CI_unrel_dumm[1,2]*sd(Search_Survey$Age),4),
+              round(CI_unrel_dumm[2,2]*sd(Search_Survey$Gender),4),
+              round(CI_unrel_dumm[3,2]*sd(Search_Survey$Education_Score),4),
+              round(CI_unrel_dumm[4,2]*sd(Search_Survey$Income_Score),4),
+              round(CI_unrel_dumm[5,2]*sd(Search_Survey$Ideo_Congruence),4),
+              round(CI_unrel_dumm[6,2]*sd(Search_Survey$Dig_Lit_Score),4))           
 
 Coef_names <- c('Age',
                 'Gender',
@@ -3456,229 +2487,82 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
 #Save figure:
 ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy_ROBUST.png',height=8,width=12)
 
+################################################################################################################
+
+################################ Figure 3b: Coefs_CIs_Predicting_Headline_Link.png  ##########################################
 
 ################################################################################################################
 
-################################ Figure 4b: Quantiles_High_DL_FULL_ROBUST.png ##########################################
+#Pull-in search data data:
+Headline_coding <- read.csv('./Data/Headline_Coding.csv')
 
-################################################################################################################
+#Select variables needed:
+Headline_coding <- Headline_coding %>% select(ResponseId,Article_day,Headline_Link,Age,Gender,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score)
 
-#Treatment Only - Subset By Quality of Google Results:
-Survey_Unrel <- Combined_GS_Survey_Data
-
-#Create string with reliability scores:
-Survey_Unrel$List_Scores <- as.character(Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel$List_Scores <- gsub('\\[|\\]','',Survey_Unrel$List_Scores)
-Survey_Unrel <- Survey_Unrel %>% filter(FC_Eval == 'FM')
-
-#Create dummy variable with Google Search Results
-Survey_Unrel$ALL_URLS <- as.character(Survey_Unrel$ALL_URLS)
-Survey_Unrel$GS_Results <- ifelse(nchar(Survey_Unrel$ALL_URLS) > 2,1,0)
-Survey_Unrel <- Survey_Unrel %>% filter(GS_Results == 1)
+#Filter Robust Mode Articles:
+Headline_coding <- Headline_coding %>% filter(Article_day %in% Robust_Articles)
 
 
-#Create Variables with exposure varaibles:
-
-#New Blank matrix
-Final_Mat <- matrix(ncol=4)
-
-#For loop that calculates variables:
-Only_Rel_URLs <- c()
-Some_Unrel_URLs <- c()
-Total_Rel_Sources <- c()
-Total_Unrel_Sources <- c()
-Total_Sources <- c()
-for(i in 1:nrow(Survey_Unrel)){
-  All_Scores <- unlist(strsplit(Survey_Unrel$List_Scores[i], split=", "))
-  All_Scores <- as.numeric(All_Scores)
-  Rel_Sources = 0
-  Unrel_Sources = 0
-  Tot_Sources = 0
-  if(length(All_Scores) == 0){
-    All_Scores = NA} else{
-      for(x in 1:length(All_Scores)){
-        Tot_Sources = Tot_Sources + 1
-        if(All_Scores[x] > 85){
-          Rel_Sources = Rel_Sources + 1
-        } else{
-          if(All_Scores[x] < 60){
-            Unrel_Sources = Unrel_Sources + 1
-          }
-        }
-      } 
-      if(Rel_Sources > 0 & Rel_Sources == Tot_Sources){
-        Only_Rel_Sources = 1
-      } else{
-        Only_Rel_Sources = 0
-      }
-      if(Unrel_Sources > 0){
-        Some_Unrel_Sources = 1
-      } else{
-        Some_Unrel_Sources = 0
-      }
-    }
-  Only_Rel_URLs = c(Only_Rel_URLs,Only_Rel_Sources)
-  Some_Unrel_URLs = c(Some_Unrel_URLs,Some_Unrel_Sources)
-  Total_Rel_Sources = c(Total_Rel_Sources,Rel_Sources)
-  Total_Unrel_Sources = c(Total_Unrel_Sources,Unrel_Sources)
-  Total_Sources = c(Total_Sources,Tot_Sources)
-}
-
-#Add variables to dataframe:
-Survey_Unrel$Only_Rel_URLs <- Only_Rel_URLs
-Survey_Unrel$Some_Unrel_URLs <- Some_Unrel_URLs
-Survey_Unrel$Total_Rel_Sources <- Total_Rel_Sources
-Survey_Unrel$Total_Unrel_Sources <- Total_Unrel_Sources
-Survey_Unrel$Total_Sources <- Total_Sources
-
-
-#Filter by those exposed to unreliable news sites:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-
-
-
-#Pull control data:
-Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
-
-#Merge data
-Control_Data <- merge(Control_Data,FC_Ideo_Data,by='Article_day')
-
-#Create Ideological Perspective data:
-Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
-Control_Data <- Control_Data %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
-Control_Data <- Control_Data %>% mutate(Ideo_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
-
-#Only keep those who had the web-tracking extension on while they evaluated articles:
-Control_Data$Article_day <- as.character(Control_Data$Article_day)
-Control_WT_Data <- read.csv('./Data/output_Control_Survey_2.csv')
-Control_WT_Data$Article_day <- as.character(Control_WT_Data$Article_day)
-Control_WT_Data$X <- NULL
-Control_WT_Data <- unique(Control_WT_Data)
-colnames(Control_WT_Data)[1] <- 'ResponseId'
-Control_Data <- merge(Control_Data,Control_WT_Data,by=c('ResponseId','Article_day'))
-
-#Filter false/misleading articles:
-Control_Data <- Control_Data %>% filter(FC_Eval == 'FM')
-Control_Data <- Control_Data %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Control_Data$Treatment <- 0
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#filter digital literacy:
-New_Data <- New_Data %>% filter(Dig_Lit_Score >= median(New_Data$Dig_Lit_Score))
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_head_url = feols(Headline_Link ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Dig_Lit_Score|Article_day, cluster = ~ResponseId+Article_day, data = Headline_coding)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_head_url = confint(fit_head_url)
 
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#List of coefficients
+Coefficients <- c(round(fit_head_url$coefficients[1]*sd(Headline_coding$Age),4),
+                  round(fit_head_url$coefficients[2]*sd(Headline_coding$Gender),4),
+                  round(fit_head_url$coefficients[3]*sd(Headline_coding$Education_Score),4),
+                  round(fit_head_url$coefficients[4]*sd(Headline_coding$Income_Score),4),
+                  round(fit_head_url$coefficients[5]*sd(Headline_coding$Ideo_Congruence),4),
+                  round(fit_head_url$coefficients[6]*sd(Headline_coding$Dig_Lit_Score),4))
 
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+#Vector of upper confidence intervals:
+CI_Upper <- c(round(CI_head_url[1,1]*sd(Headline_coding$Age),4),
+              round(CI_head_url[2,1]*sd(Headline_coding$Gender),4),
+              round(CI_head_url[3,1]*sd(Headline_coding$Education_Score),4),
+              round(CI_head_url[4,1]*sd(Headline_coding$Income_Score),4),
+              round(CI_head_url[5,1]*sd(Headline_coding$Ideo_Congruence),4),
+              round(CI_head_url[6,1]*sd(Headline_coding$Dig_Lit_Score),4))            
 
+#Vector of lower confidence intervals:
+CI_Lower <- c(round(CI_head_url[1,2]*sd(Headline_coding$Age),4),
+              round(CI_head_url[2,2]*sd(Headline_coding$Gender),4),
+              round(CI_head_url[3,2]*sd(Headline_coding$Education_Score),4),
+              round(CI_head_url[4,2]*sd(Headline_coding$Income_Score),4),
+              round(CI_head_url[5,2]*sd(Headline_coding$Ideo_Congruence),4),
+              round(CI_head_url[6,2]*sd(Headline_coding$Dig_Lit_Score),4))           
 
-Final_Mat <- matrix(ncol=5)
+#Vector of coefficient names:
+Coef_names <- c('Age',
+                'Gender',
+                'Education',
+                'Income',
+                'Ideological\nCongruence',
+                'Digital Literacy')
 
+#Put together matrix to create plot:
+d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
+rownames(d_matrix) <- c()
+d_matrix <- data.frame(d_matrix)
+d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
+d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+d_matrix <- d_matrix %>% arrange(desc(row_number()))
+d_matrix$x<-c(0.1,0.2,0.3,0.4,0.5,0.6)
 
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Some Very\nUnreliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Some Very\nUnreliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Some Very\nUnreliable News'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#filter digital literacy:
-New_Data <- New_Data %>% filter(Dig_Lit_Score >= median(New_Data$Dig_Lit_Score))
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Add to matrix:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Only Very\nReliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Only Very\nReliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Only Very\nReliable News'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Use dataframe to create plot:
-Final_Mat <- as.data.frame(Final_Mat)
-Final_Mat <- na.omit(Final_Mat)
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
-Final_Mat <- na.omit(Final_Mat)
-
-Final_Mat$x<- c(0.8,0.9,1.0,1.4,1.5,1.6)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
-Final_Mat$Type_News <- factor(Final_Mat$Type_News,levels=c('Some Very\nUnreliable News',
-                                                           'Only Very\nReliable News'))
-
-#Produce Plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
+#Produce plot:
+ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
-  geom_point(aes(color = Measure, shape=Measure),size=4) +
-  geom_linerange(aes(min = Low_Conf, 
-                     max = Upp_Conf, 
-                     color = Measure),
+  geom_point(size=4) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
                  size=1.5) +
-  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
-  labs(color  = "Measure", shape  = "Measure") +
-  ylab("\nEffect of Encouragement to Search for Information on \n Likelihood of Rating Misinformation True") +
+  scale_color_manual(values=c('red','blue','purple'), name = "Period") +
+  ylab("\n The Effect of a One Standard Deviation Increase of Ind. Variable\n on Probability of using Headline or Link as Search Term") +
   theme_classic() +
   theme(axis.title.x = element_text(size=22),
         axis.text.x  = element_text(size=20),
@@ -3687,123 +2571,168 @@ ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
         plot.title = element_text(size = 20),
         legend.title = element_text(size=20),
         legend.text = element_text(size=20)) +
-  ylim(-0.5,0.5) +
-  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Some Very\nUnreliable News',
-                                                                                             'Only Very\nReliable News'),limits=c(0.5,2.0)) +
+  ylim(-0.1,0.1) +
+  scale_x_continuous("Demographic Covariates \n",breaks=c(0.1,0.2,0.3,0.4,0.5,0.6),labels=Coef_names,limits=c(0.0,0.7)) +
   coord_flip()
 
-#Save Figure:
-ggsave('./Figures/Quantiles_High_DL_FULL_ROBUST.png',height=8,width=8)
+#Save figure:
+ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link_ROBUST.png',height=8,width=12)
 
 
 ################################################################################################################
 
-############################## Figure 4a: Quantiles_Low_DL_FULL_ROBUST.png ############################################
+################################ Figure 3c: Study_5_Bar_Graph_Google_Search_HL.png  ##########################################
 
 ################################################################################################################
 
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
+#Filter Robust Mode Articles:
+Search_Results_FM_DF_R <- Search_Results_FM_DF %>% filter(Article_day %in% Robust_Articles)
+Search_Results_T_DF_R <- Search_Results_T_DF %>% filter(Article_day %in% Robust_Articles_T)
 
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
+#Bind the Study 5 data from search results:
+Search_Results_T_FM_DF <- rbind(Search_Results_FM_DF_R,Search_Results_T_DF_R)
 
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
+#Merge search results data and search engine coding results:
+Search_Results_T_FM_DF <- merge(Search_Results_T_FM_DF,Headline_coding,by=c('ResponseId','Article_day'))
 
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
 
-#filter digital literacy:
-New_Data <- New_Data %>% filter(Dig_Lit_Score < median(New_Data$Dig_Lit_Score))
+#Create dataset of search queries that does not use headline/link:
+SQ_No_Headline <- Search_Results_T_FM_DF %>% filter(Headline_Link == 0)
 
-#Remove NAs
-New_Data <- na.omit(New_Data)
 
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+
+#Create dataset of search queries that does use headline/link:
+SQ_Headline_Data <- Search_Results_T_FM_DF %>% filter(Headline_Link == 1)
+
+#Create Count of individuals that didnt see any unreliable news sites:
+True_Count_Zero <- SQ_No_Headline %>% filter(Prop_Unreliable_Final == 0)
+FM_Count_Zero <- SQ_Headline_Data %>% filter(Prop_Unreliable_Final == 0)
+
+#Create Count of individuals that saw at lesat some unreliable news sites:
+True_Count_Above_Zero <- SQ_No_Headline %>% filter(Prop_Unreliable_Final > 0)
+FM_Count_Above_Zero <- SQ_Headline_Data %>% filter(Prop_Unreliable_Final > 0)
+
+
+
+#Create matrix to plot:
+Matrix_Dist <- matrix(c(nrow(True_Count_Zero)/nrow(SQ_No_Headline),'Zero','Other',
+                        nrow(FM_Count_Zero)/nrow(SQ_Headline_Data),'Zero','Headline/Link',
+                        nrow(True_Count_Above_Zero)/nrow(SQ_No_Headline),'One or more','Other',
+                        nrow(FM_Count_Above_Zero)/nrow(SQ_Headline_Data),'One or more','Headline/Link'),ncol=3,byrow=T)
+Matrix_Dist <- as.data.frame(Matrix_Dist)
+colnames(Matrix_Dist) <- c('Proportion','Percentage','Article_Rating')
+Matrix_Dist$Proportion <- as.character(Matrix_Dist$Proportion)
+Matrix_Dist$Proportion <- as.numeric(Matrix_Dist$Proportion)
+Matrix_Dist$Percentage <- factor(Matrix_Dist$Percentage,levels=c('Zero',
+                                                                 'One or more'))
+Matrix_Dist$Article_Rating <- factor(Matrix_Dist$Article_Rating,levels=c('Other',
+                                                                         'Headline/Link'))
+Matrix_Dist$Proportion <- round(Matrix_Dist$Proportion,2)
+#Produce plot:
+ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_fill_manual(values=c('springgreen3','red3'), name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
+  geom_density(adjust=3, alpha=.4) +
+  ylab('Proportion of Search Queries That Return Search Engine Results That    \n Return Unreliable News by Article Type         \n') +
+  xlab('\nType of Search Query Used') +
+  theme_bw() + 
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.title.x = element_text(size=24),
+        axis.text.x  = element_text(size=22),
+        axis.title.y = element_text(size=24),
+        axis.text.y  = element_text(size=22),
+        title =element_text(size=18, face='bold'),
+        legend.text = element_text(size=18)) + guides(fill=guide_legend(
+          keywidth=0.3,
+          keyheight=0.3,
+          default.unit="inch")) +
+  geom_text(aes(label=Proportion), position=position_dodge(width=0.9), vjust=-0.25,size=6) +
+  ylim(0,1)
+
+#Save figure:
+ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL_ROBUST.png',height=12,width=12)
+
+
+################################################################################################################
+
+################################ Figure 4b: Quantiles_High_DL_FULL_ROBUST.png ##########################################
+
+################################################################################################################
+
+
+#filter responses:
+upper_half_df_high_diglit$Article_day <- gsub('Article_day','',upper_half_df_high_diglit$Article_day)
+Robust_upper_half_df_high_diglit <- upper_half_df_high_diglit %>% filter(Article_day %in% Robust_Articles)
+
+fit_1_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_high_diglit)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_1_1 <- confint(fit_1_1)
 
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_1_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_high_diglit)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_1_2 = confint(fit_1_2)
 
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_1_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_high_diglit)
 #Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_1_3 = confint(fit_1_3)
 
-#Create matrix with coefiicients and confidence intervals:
-Final_Mat <- matrix(ncol=5)
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Some Very\nUnreliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Some Very\nUnreliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Some Very\nUnreliable News'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
+Fig_4b_Mat <- matrix(ncol=5)
 
+New_matr <- matrix(c(round(fit_1_1$coefficients[1]/sd(Robust_upper_half_df_high_diglit$Seven_Ordinal),4),round(CI_1_1[1,1]/sd(Robust_upper_half_df_high_diglit$Seven_Ordinal),4),round(CI_1_1[1,2]/sd(Robust_upper_half_df_high_diglit$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_1_2$coefficients[1]/sd(Robust_upper_half_df_high_diglit$Four_Ordinal),4),round(CI_1_2[1,1]/sd(Robust_upper_half_df_high_diglit$Four_Ordinal),4),round(CI_1_2[1,2]/sd(Robust_upper_half_df_high_diglit$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_1_3$coefficients[1]/sd(Robust_upper_half_df_high_diglit$True_Dummy),4),round(CI_1_3[1,1]/sd(Robust_upper_half_df_high_diglit$True_Dummy),4),round(CI_1_3[1,2]/sd(Robust_upper_half_df_high_diglit$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
 
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#filter digital literacy:
-New_Data <- New_Data %>% filter(Dig_Lit_Score < median(New_Data$Dig_Lit_Score))
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
+Fig_4b_Mat <- rbind(Fig_4b_Mat,New_matr)
 
 
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#filter responses:
+lower_half_df_high_diglit$Article_day <- gsub('Article_day','',lower_half_df_high_diglit$Article_day)
+Robust_lower_half_df_high_diglit <- lower_half_df_high_diglit %>% filter(Article_day %in% Robust_Articles)
+
+fit_2_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_high_diglit)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_2_1 <- confint(fit_2_1)
 
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_2_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_high_diglit)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_2_2 = confint(fit_2_2)
 
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_high_diglit)
 #Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_2_3 = confint(fit_2_3)
 
-#Merge data:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Only Very\nReliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Only Very\nReliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Only Very\nReliable News'),ncol=5,byrow=T)
+#Add to matrix:
+New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Robust_lower_half_df_high_diglit$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_lower_half_df_high_diglit$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_lower_half_df_high_diglit$Seven_Ordinal),4),'Ordinal (7)','Bottom 50% News Quality',
+                     round(fit_2_2$coefficients[1]/sd(Robust_lower_half_df_high_diglit$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_lower_half_df_high_diglit$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_lower_half_df_high_diglit$Four_Ordinal),4),'Ordinal (4)','Bottom 50% News Quality',
+                     round(fit_2_3$coefficients[1]/sd(Robust_lower_half_df_high_diglit$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_lower_half_df_high_diglit$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_lower_half_df_high_diglit$True_Dummy),4),'True (Dummy)','Bottom 50% News Quality'),ncol=5,byrow=T)
+Fig_4b_Mat <- rbind(Fig_4b_Mat,New_matr)
 
 
-#Create dataframe to create plot:
-Final_Mat <- rbind(Final_Mat,New_matr)
-Final_Mat <- as.data.frame(Final_Mat)
-Final_Mat <- na.omit(Final_Mat)
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
-Final_Mat <- na.omit(Final_Mat)
-Final_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
+#Use dataframe to create plot:
+Fig_4b_Mat <- as.data.frame(Fig_4b_Mat)
+Fig_4b_Mat <- na.omit(Fig_4b_Mat)
+colnames(Fig_4b_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
+Fig_4b_Mat <- na.omit(Fig_4b_Mat)
 
+Fig_4b_Mat$x<- c(1.4,1.5,1.6,0.8,0.9,1.0)
+Fig_4b_Mat$Coef <- as.character(Fig_4b_Mat$Coef)
+Fig_4b_Mat$Coef <- as.numeric(Fig_4b_Mat$Coef)
+Fig_4b_Mat$Upp_Conf <- as.character(Fig_4b_Mat$Upp_Conf)
+Fig_4b_Mat$Upp_Conf <- as.numeric(Fig_4b_Mat$Upp_Conf)
+Fig_4b_Mat$Low_Conf <- as.character(Fig_4b_Mat$Low_Conf)
+Fig_4b_Mat$Low_Conf <- as.numeric(Fig_4b_Mat$Low_Conf)
+Fig_4b_Mat$Type_News <- factor(Fig_4b_Mat$Type_News,levels=c('Bottom 50% News Quality',
+                                                             'Top 50% News Quality'))
 
 #Produce Plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
+ggplot(data = Fig_4b_Mat, aes(x = x, y = Coef)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
   geom_point(aes(color = Measure, shape=Measure),size=4) +
@@ -3821,9 +2750,113 @@ ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
         axis.text.y  = element_text(size=22),
         legend.title = element_text(size=20),
         legend.text = element_text(size=18)) +
-  ylim(-0.6,0.5) +
-  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Some Very\nUnreliable News',
-                                                                                             'Only Very\nReliable News'),limits=c(0.5,2.0)) +
+  ylim(-0.6,0.7) +
+  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Bottom 50%\nNews Quality',
+                                                                                             'Top 50%\nNews Quality'),limits=c(0.5,2.0)) +
+  coord_flip()
+
+
+#Save Figure:
+ggsave('./Figures/Quantiles_High_DL_FULL_ROBUST.png',height=8,width=8)
+
+
+################################################################################################################
+
+############################## Figure 4a: Quantiles_Low_DL_FULL_ROBUST.png ############################################
+
+################################################################################################################
+
+#filter responses
+upper_half_df_low_diglit$Article_day <- gsub('Article_day','',upper_half_df_low_diglit$Article_day)
+Robust_upper_half_df_low_diglit <- upper_half_df_low_diglit %>% filter(Article_day %in% Robust_Articles)
+
+fit_1_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_low_diglit)
+#Produce confidence intervals with clustered standard errors:
+CI_1_1 <- confint(fit_1_1)
+
+#Run model:
+fit_1_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_low_diglit)
+#Produce confidence intervals with clustered standard errors:
+CI_1_2 = confint(fit_1_2)
+
+#Run model:
+fit_1_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_low_diglit)
+#Produce confidence intervals with clustered standard errors:
+CI_1_3 = confint(fit_1_3)
+
+Fig_4a_Mat <- matrix(ncol=5)
+
+New_matr <- matrix(c(round(fit_1_1$coefficients[1]/sd(Robust_upper_half_df_low_diglit$Seven_Ordinal),4),round(CI_1_1[1,1]/sd(Robust_upper_half_df_low_diglit$Seven_Ordinal),4),round(CI_1_1[1,2]/sd(Robust_upper_half_df_low_diglit$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_1_2$coefficients[1]/sd(Robust_upper_half_df_low_diglit$Four_Ordinal),4),round(CI_1_2[1,1]/sd(Robust_upper_half_df_low_diglit$Four_Ordinal),4),round(CI_1_2[1,2]/sd(Robust_upper_half_df_low_diglit$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_1_3$coefficients[1]/sd(Robust_upper_half_df_low_diglit$True_Dummy),4),round(CI_1_3[1,1]/sd(Robust_upper_half_df_low_diglit$True_Dummy),4),round(CI_1_3[1,2]/sd(Robust_upper_half_df_low_diglit$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
+
+Fig_4a_Mat <- rbind(Fig_4a_Mat,New_matr)
+
+
+#filter responses
+lower_half_df_low_diglit$Article_day <- gsub('Article_day','',lower_half_df_low_diglit$Article_day)
+Robust_lower_half_df_low_diglit <- lower_half_df_low_diglit %>% filter(Article_day %in% Robust_Articles)
+
+#Run Model
+fit_2_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_low_diglit)
+#Produce confidence intervals with clustered standard errors:
+CI_2_1 <- confint(fit_2_1)
+
+#Run model:
+fit_2_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_low_diglit)
+#Produce confidence intervals with clustered standard errors:
+CI_2_2 = confint(fit_2_2)
+
+#Run model:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_low_diglit)
+#Produce confidence intervals with clustered standard errors:
+CI_2_3 = confint(fit_2_3)
+
+New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Robust_lower_half_df_low_diglit$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_lower_half_df_low_diglit$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_lower_half_df_low_diglit$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_2_2$coefficients[1]/sd(Robust_lower_half_df_low_diglit$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_lower_half_df_low_diglit$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_lower_half_df_low_diglit$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_2_3$coefficients[1]/sd(Robust_lower_half_df_low_diglit$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_lower_half_df_low_diglit$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_lower_half_df_low_diglit$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
+
+Fig_4a_Mat <- rbind(Fig_4a_Mat,New_matr)
+
+#Use dataframe to create plot:
+Fig_4a_Mat <- as.data.frame(Fig_4a_Mat)
+Fig_4a_Mat <- na.omit(Fig_4a_Mat)
+colnames(Fig_4a_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
+Fig_4a_Mat <- na.omit(Fig_4a_Mat)
+
+Fig_4a_Mat$x<- c(1.4,1.5,1.6,0.8,0.9,1.0)
+Fig_4a_Mat$Coef <- as.character(Fig_4a_Mat$Coef)
+Fig_4a_Mat$Coef <- as.numeric(Fig_4a_Mat$Coef)
+Fig_4a_Mat$Upp_Conf <- as.character(Fig_4a_Mat$Upp_Conf)
+Fig_4a_Mat$Upp_Conf <- as.numeric(Fig_4a_Mat$Upp_Conf)
+Fig_4a_Mat$Low_Conf <- as.character(Fig_4a_Mat$Low_Conf)
+Fig_4a_Mat$Low_Conf <- as.numeric(Fig_4a_Mat$Low_Conf)
+Fig_4a_Mat$Type_News <- factor(Fig_4a_Mat$Type_News,levels=c('Bottom 50% News Quality',
+                                                             'Top 50% News Quality'))
+
+
+#Produce Plot:
+ggplot(data = Fig_4a_Mat, aes(x = x, y = Coef)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(aes(color = Measure, shape=Measure),size=4) +
+  geom_linerange(aes(min = Low_Conf, 
+                     max = Upp_Conf, 
+                     color = Measure),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
+  labs(color  = "Measure", shape  = "Measure") +
+  ylab("\nEffect of Encouragement to Search for Information on \n Likelihood of Rating Misinformation True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=22),
+        axis.text.x  = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.text.y  = element_text(size=22),
+        legend.title = element_text(size=20),
+        legend.text = element_text(size=18)) +
+  ylim(-0.6,0.7) +
+  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Bottom 50%\nNews Quality',
+                                                                                             'Top 50%\nNews Quality'),limits=c(0.5,2.0)) +
   coord_flip()
 
 #Save Figure:
@@ -3836,410 +2869,77 @@ ggsave('./Figures/Quantiles_Low_DL_FULL_ROBUST.png',height=8,width=8)
 
 ################################################################################################################
 
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#filter ideologically congruent:
-New_Data <- New_Data %>% filter(Ideo_Congruence == 1)
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
+#filter responses
+upper_half_df_congruent$Article_day <- gsub('Article_day','',upper_half_df_congruent$Article_day)
+Robust_upper_half_df_congruent <- upper_half_df_congruent %>% filter(Article_day %in% Robust_Articles)
 
 #Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+fit_1_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_congruent)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_1_1 <- confint(fit_1_1)
+
+#Run model:
+fit_1_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_congruent)
+#Produce confidence intervals with clustered standard errors:
+CI_1_2 = confint(fit_1_2)
+
+#Run model:
+fit_1_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_congruent)
+#Produce confidence intervals with clustered standard errors:
+CI_1_3 = confint(fit_1_3)
+
+Fig_4c_Mat <- matrix(ncol=5)
+
+New_matr <- matrix(c(round(fit_1_1$coefficients[1]/sd(Robust_upper_half_df_congruent$Seven_Ordinal),4),round(CI_1_1[1,1]/sd(Robust_upper_half_df_congruent$Seven_Ordinal),4),round(CI_1_1[1,2]/sd(Robust_upper_half_df_congruent$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_1_2$coefficients[1]/sd(Robust_upper_half_df_congruent$Four_Ordinal),4),round(CI_1_2[1,1]/sd(Robust_upper_half_df_congruent$Four_Ordinal),4),round(CI_1_2[1,2]/sd(Robust_upper_half_df_congruent$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_1_3$coefficients[1]/sd(Robust_upper_half_df_congruent$True_Dummy),4),round(CI_1_3[1,1]/sd(Robust_upper_half_df_congruent$True_Dummy),4),round(CI_1_3[1,2]/sd(Robust_upper_half_df_congruent$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
+
+Fig_4c_Mat <- rbind(Fig_4c_Mat,New_matr)
+
+#filter responses
+lower_half_df_congruent$Article_day <- gsub('Article_day','',lower_half_df_congruent$Article_day)
+Robust_lower_half_df_congruent <- lower_half_df_congruent %>% filter(Article_day %in% Robust_Articles)
 
 #Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+fit_2_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_congruent)
 #Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_2_1 <- confint(fit_2_1)
 
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_2_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_congruent)
 #Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_2_2 = confint(fit_2_2)
 
-
-#Create matrix with coefficients and confidence intervals:
-Final_Mat <- matrix(ncol=5)
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Some Very\nUnreliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Some Very\nUnreliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Some Very\nUnreliable News'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#filter ideologically congruent:
-New_Data <- New_Data %>% filter(Ideo_Congruence == 1)
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
+#Run model:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_congruent)
 #Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+CI_2_3 = confint(fit_2_3)
 
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Robust_lower_half_df_congruent$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_lower_half_df_congruent$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_lower_half_df_congruent$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_2_2$coefficients[1]/sd(Robust_lower_half_df_congruent$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_lower_half_df_congruent$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_lower_half_df_congruent$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_2_3$coefficients[1]/sd(Robust_lower_half_df_congruent$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_lower_half_df_congruent$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_lower_half_df_congruent$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
 
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
+Fig_4c_Mat <- rbind(Fig_4c_Mat,New_matr)
 
-#Merge dataL
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Only Very\nReliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Only Very\nReliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Only Very\nReliable News'),ncol=5,byrow=T)
+#Use dataframe to create plot:
+Fig_4c_Mat <- as.data.frame(Fig_4c_Mat)
+Fig_4c_Mat <- na.omit(Fig_4c_Mat)
+colnames(Fig_4c_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
+Fig_4c_Mat <- na.omit(Fig_4c_Mat)
 
-#Create dataset to create plot:
-Final_Mat <- rbind(Final_Mat,New_matr)
-Final_Mat <- as.data.frame(Final_Mat)
-Final_Mat <- na.omit(Final_Mat)
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
-Final_Mat <- na.omit(Final_Mat)
-Final_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
-Final_Mat$Type_News <- factor(Final_Mat$Type_News,levels=c('Some Very\nUnreliable News',
-                                                           'Only Very\nReliable News'))
+Fig_4c_Mat$x<- c(1.4,1.5,1.6,0.8,0.9,1.0)
+Fig_4c_Mat$Coef <- as.character(Fig_4c_Mat$Coef)
+Fig_4c_Mat$Coef <- as.numeric(Fig_4c_Mat$Coef)
+Fig_4c_Mat$Upp_Conf <- as.character(Fig_4c_Mat$Upp_Conf)
+Fig_4c_Mat$Upp_Conf <- as.numeric(Fig_4c_Mat$Upp_Conf)
+Fig_4c_Mat$Low_Conf <- as.character(Fig_4c_Mat$Low_Conf)
+Fig_4c_Mat$Low_Conf <- as.numeric(Fig_4c_Mat$Low_Conf)
+Fig_4c_Mat$Type_News <- factor(Fig_4c_Mat$Type_News,levels=c('Some Very\nUnreliable News',
+                                                             'Only Very\nReliable News'))
+
 
 #Create plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Measure, shape=Measure),size=4) +
-  geom_linerange(aes(min = Low_Conf, 
-                     max = Upp_Conf, 
-                     color = Measure),
-                 size=1.5) +
-  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
-  labs(color  = "Measure", shape  = "Measure") +
-  ylab("\nEffect of Encouragement to Search for Information on \n Likelihood of Rating Misinformation True") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=22),
-        axis.text.x  = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        axis.text.y  = element_text(size=22),
-        plot.title = element_text(size = 20),
-        legend.title = element_text(size=20),
-        legend.text = element_text(size=20)) +
-  ylim(-0.8,0.5) +
-  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Some Very\nUnreliable News',
-                                                                                             'Only Very\nReliable News'),limits=c(0.5,2.0)) +
-  coord_flip()
-
-#Save figure:
-ggsave('./Figures/Quantiles_Congruent_FULL_ROBUST.png',height=8,width=8)
-
-################################################################################################################
-
-################################ Figure 4d: Quantiles_Incong_FULL_ROBUST.png ##########################################
-
-################################################################################################################
-
-
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter individuals with ideological incongruence:
-New_Data_1 <- New_Data %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
-New_Data_2 <- New_Data %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
-
-#Merge control and treatment datra:
-New_Data <- rbind(New_Data_1,New_Data_2)
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-
-#Create matrix with coefficients and confidence intervals:
-Final_Mat <- matrix(ncol=5)
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Some Very\nUnreliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Some Very\nUnreliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Some Very\nUnreliable News'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter individuals with ideological incongruence:
-New_Data_1 <- New_Data %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
-New_Data_2 <- New_Data %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
-
-#Merge control and treatment datra:
-New_Data <- rbind(New_Data_1,New_Data_2)
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Merge data:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Only Very\nReliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Only Very\nReliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Only Very\nReliable News'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Create data for plot:
-Final_Mat <- as.data.frame(Final_Mat)
-Final_Mat <- na.omit(Final_Mat)
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
-Final_Mat <- na.omit(Final_Mat)
-Final_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
-Final_Mat$Type_News <- factor(Final_Mat$Type_News,levels=c('Some Very\nUnreliable News',
-                                                           'Only Very\nReliable News'))
-
-#Produce Plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Measure, shape=Measure),size=4) +
-  geom_linerange(aes(min = Low_Conf, 
-                     max = Upp_Conf, 
-                     color = Measure),
-                 size=1.5) +
-  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
-  labs(color  = "Measure", shape  = "Measure") +
-  ylab("\nEffect of Encouragement to Search for Information on \n Likelihood of Rating Misinformation True") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=22),
-        axis.text.x  = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        axis.text.y  = element_text(size=22),
-        plot.title = element_text(size = 20),
-        legend.title = element_text(size=20),
-        legend.text = element_text(size=20)) +
-  ylim(-0.5,0.5) +
-  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Some Very\nUnreliable News',
-                                                                                             'Only Very\nReliable News'),limits=c(0.5,2.0)) +
-  coord_flip()
-
-#Save figure:
-ggsave('./Figures/Quantiles_Incong_FULL_ROBUST.png',height=8,width=8)
-
-
-
-
-
-
-
-
-
-
-
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Some_Unrel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter individuals with ideological incongruence:
-New_Data_1 <- New_Data %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
-New_Data_2 <- New_Data %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
-
-#Merge control and treatment datra:
-New_Data <- rbind(New_Data_1,New_Data_2)
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-
-#Create matrix with coefficients and confidence intervals:
-Final_Mat <- matrix(ncol=5)
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Some Very\nUnreliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Some Very\nUnreliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Some Very\nUnreliable News'),ncol=5,byrow=T)
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Filter:
-Survey_Unrel_1 <- Survey_Unrel %>% filter(Only_Rel_URLs == 1)
-
-#Select variables:
-Survey_Unrel_1 <- Survey_Unrel_1 %>% select(Article_day,True_Dummy,Four_Ordinal,Seven_Ordinal,Age,Gender,ResponseId,Education_Score,Income_Score,Ideo_Congruence,Dummy_Ideology,Article_Lean,Dig_Lit_Score)
-Survey_Unrel_1$Treatment <- 1
-
-#Create dataframe with unique response:
-Survey_Unrel_1 <- unique(Survey_Unrel_1)
-Survey_Unrel_1 <- as.data.frame(Survey_Unrel_1)
-
-#Combine data:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#filter digital literacy:
-#Merge:
-New_Data <- rbind(Survey_Unrel_1,Control_Data)
-
-#Filter individuals with ideological incongruence:
-New_Data_1 <- New_Data %>% filter(Article_Lean == 'Liberal' | Article_Lean ==  'Conservative')
-New_Data_2 <- New_Data %>% filter(Article_Lean == 'Conservative' | Article_Lean ==  'Liberal')
-
-#Merge control and treatment datra:
-New_Data <- rbind(New_Data_1,New_Data_2)
-
-#Remove NAs
-New_Data <- na.omit(New_Data)
-
-
-#Run Model
-fit_2_1 = glm(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_1 = coefci(fit_2_1, vcov. = vcovCL(fit_2_1, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_2 = glm(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_2 = coefci(fit_2_2, vcov. = vcovCL(fit_2_2, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Run Model
-fit_2_3 = glm(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score + Ideo_Congruence + Article_day,data=New_Data)
-#Produce confidence intervals with clustered standard errors:
-CI_2_3 = coefci(fit_2_3, vcov. = vcovCL(fit_2_3, cluster = list(New_Data$ResponseId,New_Data$Article_day), type = "HC0"))
-
-#Merge data:
-New_matr <- matrix(c(round(fit_2_1$coefficients[2]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,1]/sd(New_Data$Seven_Ordinal),4),round(CI_2_1[2,2]/sd(New_Data$Seven_Ordinal),4),'Ordinal (7)','Only Very\nReliable News',
-                     round(fit_2_2$coefficients[2]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,1]/sd(New_Data$Four_Ordinal),4),round(CI_2_2[2,2]/sd(New_Data$Four_Ordinal),4),'Ordinal (4)','Only Very\nReliable News',
-                     round(fit_2_3$coefficients[2]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,1]/sd(New_Data$True_Dummy),4),round(CI_2_3[2,2]/sd(New_Data$True_Dummy),4),'True (Dummy)','Only Very\nReliable News'),ncol=5,byrow=T)
-
-Final_Mat <- rbind(Final_Mat,New_matr)
-
-
-#Create data for plot:
-Final_Mat <- as.data.frame(Final_Mat)
-Final_Mat <- na.omit(Final_Mat)
-colnames(Final_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
-Final_Mat <- na.omit(Final_Mat)
-Final_Mat$x<-c(0.8,0.9,1.0,1.4,1.5,1.6)
-Final_Mat$Coef <- as.character(Final_Mat$Coef)
-Final_Mat$Coef <- as.numeric(Final_Mat$Coef)
-Final_Mat$Upp_Conf <- as.character(Final_Mat$Upp_Conf)
-Final_Mat$Upp_Conf <- as.numeric(Final_Mat$Upp_Conf)
-Final_Mat$Low_Conf <- as.character(Final_Mat$Low_Conf)
-Final_Mat$Low_Conf <- as.numeric(Final_Mat$Low_Conf)
-Final_Mat$Type_News <- factor(Final_Mat$Type_News,levels=c('Some Very\nUnreliable News',
-                                                           'Only Very\nReliable News'))
-
-#Produce Plot:
-ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
+ggplot(data = Fig_4c_Mat, aes(x = x, y = Coef)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
   geom_point(aes(color = Measure, shape=Measure),size=4) +
@@ -4259,12 +2959,612 @@ ggplot(data = Final_Mat, aes(x = x, y = Coef)) +
         legend.title = element_text(size=20),
         legend.text = element_text(size=20)) +
   ylim(-0.7,0.7) +
-  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Some Very\nUnreliable News',
-                                                                                             'Only Very\nReliable News'),limits=c(0.5,2.0)) +
+  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Bottom 50%\nNews Quality',
+                                                                                             'Top 50%\nNews Quality'),limits=c(0.5,2.0)) +
+  coord_flip()
+
+#Save figure:
+ggsave('./Figures/Quantiles_Congruent_FULL_ROBUST.png',height=8,width=8)
+
+################################################################################################################
+
+################################ Figure 4d: Quantiles_Incong_FULL_ROBUST.png ##########################################
+
+################################################################################################################
+
+#filter responses
+upper_half_df_incongruent$Article_day <- gsub('Article_day','',upper_half_df_incongruent$Article_day)
+Robust_upper_half_df_incongruent <- upper_half_df_incongruent %>% filter(Article_day %in% Robust_Articles)
+
+
+#Run Model
+fit_1_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_incongruent)
+#Produce confidence intervals with clustered standard errors:
+CI_1_1 <- confint(fit_1_1)
+
+#Run model:
+fit_1_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_incongruent)
+#Produce confidence intervals with clustered standard errors:
+CI_1_2 = confint(fit_1_2)
+
+#Run model:
+fit_1_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_upper_half_df_incongruent)
+#Produce confidence intervals with clustered standard errors:
+CI_1_3 = confint(fit_1_3)
+
+Fig_4d_Mat <- matrix(ncol=5)
+
+New_matr <- matrix(c(round(fit_1_1$coefficients[1]/sd(Robust_upper_half_df_incongruent$Seven_Ordinal),4),round(CI_1_1[1,1]/sd(Robust_upper_half_df_incongruent$Seven_Ordinal),4),round(CI_1_1[1,2]/sd(Robust_upper_half_df_incongruent$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_1_2$coefficients[1]/sd(Robust_upper_half_df_incongruent$Four_Ordinal),4),round(CI_1_2[1,1]/sd(Robust_upper_half_df_incongruent$Four_Ordinal),4),round(CI_1_2[1,2]/sd(Robust_upper_half_df_incongruent$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_1_3$coefficients[1]/sd(Robust_upper_half_df_incongruent$True_Dummy),4),round(CI_1_3[1,1]/sd(Robust_upper_half_df_incongruent$True_Dummy),4),round(CI_1_3[1,2]/sd(Robust_upper_half_df_incongruent$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
+
+Fig_4d_Mat <- rbind(Fig_4d_Mat,New_matr)
+
+
+#filter responses
+lower_half_df_incongruent$Article_day <- gsub('Article_day','',lower_half_df_incongruent$Article_day)
+Robust_lower_half_df_incongruent <- lower_half_df_incongruent %>% filter(Article_day %in% Robust_Articles)
+
+#Run Model
+fit_2_1 = feols(Seven_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_incongruent)
+#Produce confidence intervals with clustered standard errors:
+CI_2_1 <- confint(fit_2_1)
+
+#Run model:
+fit_2_2 = feols(Four_Ordinal ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_incongruent)
+#Produce confidence intervals with clustered standard errors:
+CI_2_2 = confint(fit_2_2)
+
+#Run model:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Gender + Education_Score + Income_Score|Article_day, cluster = ~ResponseId+Article_day, data = Robust_lower_half_df_incongruent)
+#Produce confidence intervals with clustered standard errors:
+CI_2_3 = confint(fit_2_3)
+
+New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Robust_lower_half_df_incongruent$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Robust_lower_half_df_incongruent$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Robust_lower_half_df_incongruent$Seven_Ordinal),4),'Ordinal (7)','Top 50% News Quality',
+                     round(fit_2_2$coefficients[1]/sd(Robust_lower_half_df_incongruent$Four_Ordinal),4),round(CI_2_2[1,1]/sd(Robust_lower_half_df_incongruent$Four_Ordinal),4),round(CI_2_2[1,2]/sd(Robust_lower_half_df_incongruent$Four_Ordinal),4),'Ordinal (4)','Top 50% News Quality',
+                     round(fit_2_3$coefficients[1]/sd(Robust_lower_half_df_incongruent$True_Dummy),4),round(CI_2_3[1,1]/sd(Robust_lower_half_df_incongruent$True_Dummy),4),round(CI_2_3[1,2]/sd(Robust_lower_half_df_incongruent$True_Dummy),4),'True (Dummy)','Top 50% News Quality'),ncol=5,byrow=T)
+
+Fig_4d_Mat <- rbind(Fig_4d_Mat,New_matr)
+
+
+#Create data for plot:
+Fig_4d_Mat <- as.data.frame(Fig_4d_Mat)
+Fig_4d_Mat <- na.omit(Fig_4d_Mat)
+colnames(Fig_4d_Mat) <- c('Coef','Low_Conf','Upp_Conf','Measure','Type_News')
+Fig_4d_Mat <- na.omit(Fig_4d_Mat)
+Fig_4d_Mat$x<-c(1.4,1.5,1.6,0.8,0.9,1.0)
+Fig_4d_Mat$Coef <- as.character(Fig_4d_Mat$Coef)
+Fig_4d_Mat$Coef <- as.numeric(Fig_4d_Mat$Coef)
+Fig_4d_Mat$Upp_Conf <- as.character(Fig_4d_Mat$Upp_Conf)
+Fig_4d_Mat$Upp_Conf <- as.numeric(Fig_4d_Mat$Upp_Conf)
+Fig_4d_Mat$Low_Conf <- as.character(Fig_4d_Mat$Low_Conf)
+Fig_4d_Mat$Low_Conf <- as.numeric(Fig_4d_Mat$Low_Conf)
+
+#Produce Plot:
+ggplot(data = Fig_4d_Mat, aes(x = x, y = Coef)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(aes(color = Measure, shape=Measure),size=4) +
+  geom_linerange(aes(min = Low_Conf, 
+                     max = Upp_Conf, 
+                     color = Measure),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
+  labs(color  = "Measure", shape  = "Measure") +
+  ylab("\nEffect of Encouragement to Search for Information on \n Likelihood of Rating Misinformation True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=22),
+        axis.text.x  = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.text.y  = element_text(size=22),
+        plot.title = element_text(size = 20),
+        legend.title = element_text(size=20),
+        legend.text = element_text(size=20)) +
+  ylim(-0.6,0.7) +
+  scale_x_continuous("News Quality Returned by Search Engines \n",breaks=c(0.9,1.5),labels=c('Bottom 50%\nNews Quality',
+                                                                                             'Top 50%\nNews Quality'),limits=c(0.5,2.0)) +
   coord_flip()
 
 #Save figure:
 ggsave('./Figures/Quantiles_Incong_FULL_ROBUST.png',height=8,width=8)
+
+
+
+#############################################   Predicting categorical response with likert score    ###########################################################
+
+#Study 1:
+#Filter control and treatment data:
+Study_1_No_Search <- Study_1_df %>% filter(Treat_Search == 0)
+Study_1_Search <- Study_1_df %>% filter(Treat_Search == 1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_1_1 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_1_No_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_1_1 <- confint(Pred_fit_1_1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_1_2 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_1_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_1_2 <- confint(Pred_fit_1_2)
+
+#Study 2:
+#Filter control and treatment data:
+Study_2_No_Search <- Study_2_df %>% filter(Treat_Search == 0)
+Study_2_Search <- Study_2_df %>% filter(Treat_Search == 1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_2_1 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_2_No_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_2_1 <- confint(Pred_fit_2_1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_2_2 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_2_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_2_2 <- confint(Pred_fit_2_2)
+
+#Study 3:
+#Filter control and treatment data:
+Study_3_No_Search <- Study_3_df %>% filter(Treatment == 0)
+Study_3_Search <- Study_3_df %>% filter(Treatment == 1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_3_1 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_3_No_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_3_1 <- confint(Pred_fit_3_1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_3_2 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_3_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_3_2 <- confint(Pred_fit_3_2)
+
+#Study 4:
+#Filter control and treatment data:
+Study_4_No_Search <- Study_4_df %>% filter(Treat_Search == 0)
+Study_4_Search <- Study_4_df %>% filter(Treat_Search == 1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_4_1 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_4_No_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_4_1 <- confint(Pred_fit_4_1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_4_2 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_4_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_4_2 <- confint(Pred_fit_4_2)
+
+#Study 5:
+Study_5_No_Search <- Study_5_df %>% filter(Treatment == 0)
+Study_5_Search<- Study_5_df %>% filter(Treatment == 1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_5_1 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_5_No_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_5_1 <- confint(Pred_fit_5_1)
+
+#Run OLS Model with clustered standard errors:
+Pred_fit_5_2 = feols(Likert_Evaluation ~ Susc_FN, cluster = ~ResponseId, data = Study_5_Search)
+#Produce confidence intervals with clustered standard errors:
+Pred_CI_5_2 <- confint(Pred_fit_5_2)
+
+Coef_names <- c('Study 1',
+                'Study 1',
+                'Study 2',
+                'Study 2',
+                'Study 3',
+                'Study 3',
+                'Study 4',
+                'Study 4',
+                'Study 5',
+                'Study 5')
+
+Group <- c('Pre-Treatment',
+           'Post-Treatment',
+           'Pre-Treatment',
+           'Post-Treatment',
+           'Pre-Treatment',
+           'Post-Treatment',
+           'Pre-Treatment',
+           'Post-Treatment',
+           'Pre-Treatment',
+           'Post-Treatment')
+
+Coefficients <- c(Pred_fit_1_1$coefficients[2],
+                  Pred_fit_1_2$coefficients[2],
+                  Pred_fit_2_1$coefficients[2],
+                  Pred_fit_2_2$coefficients[2],
+                  Pred_fit_3_1$coefficients[2],
+                  Pred_fit_3_2$coefficients[2],
+                  Pred_fit_4_1$coefficients[2],
+                  Pred_fit_4_2$coefficients[2],
+                  Pred_fit_5_1$coefficients[2],
+                  Pred_fit_5_2$coefficients[2])
+
+
+CI_Upper <- c(Pred_CI_1_1[2,2],
+              Pred_CI_1_2[2,2],
+              Pred_CI_2_1[2,2],
+              Pred_CI_2_2[2,2],
+              Pred_CI_3_1[2,2],
+              Pred_CI_3_2[2,2],
+              Pred_CI_4_1[2,2],
+              Pred_CI_4_2[2,2],
+              Pred_CI_5_1[2,2],
+              Pred_CI_5_2[2,2])
+
+CI_Lower <- c(Pred_CI_1_1[2,1],
+              Pred_CI_1_2[2,1],
+              Pred_CI_2_1[2,1],
+              Pred_CI_2_2[2,1],
+              Pred_CI_3_1[2,1],
+              Pred_CI_3_2[2,1],
+              Pred_CI_4_1[2,1],
+              Pred_CI_4_2[2,1],
+              Pred_CI_5_1[2,1],
+              Pred_CI_5_2[2,1])          
+
+d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
+rownames(d_matrix) <- c()
+d_matrix <- data.frame(d_matrix)
+d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
+d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+d_matrix <- d_matrix %>% arrange(desc(row_number()))
+d_matrix$x<-c(0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2,4.8,5.2)
+
+ggplot(data = d_matrix, aes(x = x, y = Coefficients,color=Group)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(size=4) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Group") +
+  ylab("\nEffect of Rating Misinformation as True on \n Seven-Point Ordinal Scale Veracity Rating") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=18),
+        axis.text.x  = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.y  = element_text(size=22),
+        plot.title = element_text(size = 16),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=14)) +
+  ylim(0.0,4.0) +
+  scale_x_continuous(" \n",breaks=c(1,2,3,4,5),labels=c('Study 5',
+                                                        'Study 4',
+                                                        'Study 3',
+                                                        'Study 2',
+                                                        'Study 1'),limits=c(0.5,5.5)) +
+  coord_flip()
+
+ggsave('./Figures/Pred_Categ_5_Studies.png',height=6,width=8)
+
+
+
+
+
+
+
+
+
+#Models with pre-registered models - clustered standard errors around respondents:
+
+
+
+#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 1:
+
+#Pull in this data: Search Experiment 1: Study 1:
+Study_1_df <- read.csv('./Data/Search_Exp_Misl_False.csv')
+
+#Select variables of interest:
+Study_1_df <- Study_1_df %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Ideology_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
+#Remove NA values:
+Study_1_df = na.omit(Study_1_df)
+
+#Create dataset with just control data:
+Study_1_Control_df <- Study_1_df %>% filter(Treat_Search == 0)
+Study_1_df <- Study_1_df %>% mutate(Gender = ifelse(Gender == 'Female',1,0))
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_1_1 = feols(Susc_FN ~ Treat_Search + Age +  + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId, data = Study_1_df)
+#Produce confidence intervals with clustered standard errors:
+CI_1_1 <- confint(lin_results_fit_1_1)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_1_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId, data = Study_1_df)
+#Produce confidence intervals with clustered standard errors:
+CI_1_2 <- confint(lin_results_fit_1_2)
+
+#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 2:
+#Pull in this data:
+Study_2_df <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
+
+Study_2_Ideo <- read.csv('./Data/Study_2_Respondent_Ideo.csv')
+
+Study_2_df$ResponseId <- as.character(Study_2_df$ResponseId)
+Study_2_Ideo$ResponseId <- as.character(Study_2_Ideo$ResponseId)
+
+Study_2_df <- merge(Study_2_df,Study_2_Ideo,by='ResponseId')
+
+
+#Select variables of interest:
+Study_2_df <- Study_2_df %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Ideology_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
+
+Study_2_df <- na.omit(Study_2_df)
+
+#Create dataset with just control data:
+Study_2_Control_df <- Study_2_df %>% filter(Treat_Search == 0)
+Study_2_df <- Study_2_df %>% mutate(Gender = ifelse(Gender == 'Female',1,0))
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_2_1 = feols(Susc_FN ~ Treat_Search + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId,  data = Study_2_df)
+#Produce confidence intervals with clustered standard errors:
+CI_2_1 <- confint(lin_results_fit_2_1)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_2_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId,  data = Study_2_df)
+#Produce confidence intervals with clustered standard errors:
+CI_2_2 <- confint(lin_results_fit_2_2)
+
+#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 3:
+#Load Data:
+Latency_Data <- read.csv('./Data/Latency_FC_Data.csv')
+Latency_Survey <- read.csv('./Data/Latency_Control_Survey.csv')
+
+#Create Article_day data for purpose of merging
+Latency_Survey <- Latency_Survey %>% mutate(Article_day = paste0(day,sep='_',Article))
+
+#Select data needed:
+Latency_Survey <- Latency_Survey %>% select(Evaluation,Likert_Evaluation,True_Likert_After_Info,Evaluation_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Ideology_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
+
+#Create Gender dummy variable
+Latency_Survey$Gender <- as.character(Latency_Survey$Gender)
+Latency_Survey$Gender <- ifelse(Latency_Survey$Gender == 'Female',1,0)
+
+
+#Create Likert Score post-treatment:
+Latency_Survey$True_Likert_After_Info <- as.character(Latency_Survey$True_Likert_After_Info)
+Latency_Survey <- Latency_Survey %>% filter(True_Likert_After_Info != 'not asked')
+Latency_Survey$True_Likert_After_Info <- substr(Latency_Survey$True_Likert_After_Info, start = 1, stop = 2)
+Latency_Survey$True_Likert_After_Info <- as.numeric(Latency_Survey$True_Likert_After_Info)
+
+#Create Likert Score pre-treatment:
+Latency_Survey$Likert_Evaluation <- as.character(Latency_Survey$Likert_Evaluation)
+Latency_Survey$Likert_Evaluation <- substr(Latency_Survey$Likert_Evaluation, start = 1, stop = 2)
+Latency_Survey$Likert_Evaluation <- as.numeric(Latency_Survey$Likert_Evaluation)
+
+#Create True Dummy variable pre and post-treatment:
+Latency_Survey$Evaluation <- as.character(Latency_Survey$Evaluation)
+Latency_Survey$Evaluation_After_Info <- as.character(Latency_Survey$Evaluation_After_Info)
+Latency_Survey$Evaluation <- substr(Latency_Survey$Evaluation, start = 1, stop = 4)
+Latency_Survey$Evaluation_After_Info <- substr(Latency_Survey$Evaluation_After_Info, start = 1, stop = 4)
+Latency_Survey$True_Dummy <- ifelse(Latency_Survey$Evaluation == 'True',1,0)
+Latency_Survey$True_Dummy_After <- ifelse(Latency_Survey$Evaluation_After_Info == 'True',1,0)
+
+#Remove observations that posted that their age was above 85:
+Latency_Survey$Age <- ifelse(Latency_Survey$Age > 85,NA,Latency_Survey$Age)
+
+
+
+#Pull in Fact-checking data from Study 2:
+Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
+Data_Bef_Aft$Article_day <- as.character(Data_Bef_Aft$Article_day)
+
+Article_Days <- unique(Data_Bef_Aft$Article_day)
+
+#Only use articles that were rated as false/misleading in Study 2
+Latency_Survey <- Latency_Survey %>% filter(Article_day %in% Article_Days)
+
+#Merge pre and post-treatment data:
+After_Evaluation <- Latency_Survey %>% select(True_Dummy_After,True_Likert_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Ideology_Score,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
+colnames(After_Evaluation)[1] <- 'True_Dummy'
+colnames(After_Evaluation)[2] <- 'Likert_Evaluation'
+Before_Evaluation <- Latency_Survey %>% select(True_Dummy,Likert_Evaluation,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Ideology_Score,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
+
+#Create Treatment variables:
+After_Evaluation$Treatment <- 1
+Before_Evaluation$Treatment <- 0
+
+#merge them together
+Study_3_df <- rbind(Before_Evaluation,After_Evaluation)
+
+#Create Ideological Congruence data:
+Study_3_df <- Study_3_df %>% mutate(Dummy_Ideology = ifelse(Ideology_Score > 0,'Conservative','Moderate'))
+Study_3_df <- Study_3_df %>% mutate(Dummy_Ideology = ifelse(Ideology_Score < 0,'Liberal',Dummy_Ideology))
+Study_3_df <- merge(Study_3_df,Article_data,all=T)
+Study_3_df$Article_Lean <- ifelse(Study_3_df$Article_Lean == 'None','Neutral',Study_3_df$Article_Lean)
+Study_3_df <- Study_3_df %>% mutate(Dummy_Congruence = ifelse(Dummy_Ideology == Article_Lean,1,0))
+Study_3_df$Susc_FN <- Study_3_df$True_Dummy
+Study_3_df$Treat_Search <- Study_3_df$Treatment
+
+Study_3_df <- na.omit(Study_3_df)
+
+#Create Control dataframe
+Study_3_Control_df <- Study_3_df %>% filter(Treatment == 0)
+
+#Run linear regression and produce coefficient values:
+lin_results_fit_3_1 = feols(True_Dummy ~ Treatment + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId, data = Study_3_df)
+#Produce confidence intervals using clustered standard errors:
+CI_3_1 <- confint(lin_results_fit_3_1)
+
+#Run linear regression and produce coefficient values:
+lin_results_fit_3_2 = feols(Likert_Evaluation ~ Treatment + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId, data = Study_3_df)
+#Produce confidence intervals using clustered standard errors:
+CI_3_2 <- confint(lin_results_fit_3_2)
+
+
+#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 4:
+#Pull in data
+Study_4_df <- read.csv('./Data/Experiment_2_Study_2_Misl_False.csv')
+Study_4_Ideo <- read.csv('./Data/Study_4_Respondent_Ideo.csv')
+
+Study_4_df$ResponseId <- as.character(Study_4_df$ResponseId)
+Study_4_Ideo$ResponseId <- as.character(Study_4_Ideo$ResponseId)
+
+Study_4_df <- merge(Study_4_df,Study_4_Ideo,by='ResponseId')
+
+
+#Select variables of interest:
+Study_4_df <- Study_4_df %>% select(Likert_Evaluation,Susc_FN,Treat_Search,Education_Score,Age,Gender,Income_Score,Ideology_Score,Dummy_Congruence,Familiar_Dummy,Article_day,ResponseId)
+Study_4_df <- na.omit(Study_4_df)
+
+#Create dataframe with just control data
+Study_4_Control_df <- Study_4_df %>% filter(Treat_Search == 0)
+Study_4_df <- Study_4_df %>% mutate(Gender = ifelse(Gender == 'Female',1,0))
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4_1 = feols(Susc_FN ~ Treat_Search + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId,  data = Study_4_df)
+#Produce confidence intervals with clustered standard errors:
+CI_4_1 <- confint(lin_results_fit_4_1)
+
+#Run OLS Model with clustered standard errors:
+lin_results_fit_4_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Education_Score +  Gender + Income_Score + Ideology_Score, cluster = ~ResponseId,  data = Study_4_df)
+#Produce confidence intervals with clustered standard errors:
+CI_4_2 <- confint(lin_results_fit_4_2)
+
+#################################################### Categorical (Rate as True) ####################################################
+
+#Create vector with Study names:
+Coef_names <- rev(c('Study 1',
+                    'Study 2',
+                    'Study 3',
+                    'Study 4'))
+
+#Create vector with coefficients:
+Coefficients <- rev(c(lin_results_fit_1_1$coefficients[2],
+                      lin_results_fit_2_1$coefficients[2],
+                      lin_results_fit_3_1$coefficients[2],
+                      lin_results_fit_4_1$coefficients[2]))
+
+#Create vector with upper confidence intervals:
+CI_Upper <- rev(c(CI_1_1[2,2],
+                  CI_2_1[2,2],
+                  CI_3_1[2,2],
+                  CI_4_1[2,2]))
+
+#Create vector with lower confidence intervals:
+CI_Lower <- rev(c(CI_1_1[2,1],
+                  CI_2_1[2,1],
+                  CI_3_1[2,1],
+                  CI_4_1[2,1]))         
+
+#Put together matrix with data for plot:
+d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
+rownames(d_matrix) <- c()
+d_matrix <- data.frame(d_matrix)
+d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
+d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+d_matrix <- d_matrix %>% arrange(desc(row_number()))
+
+#Set points on Y-Axis:
+d_matrix$x<-c(1,2,3,4)
+
+#Produce plot:
+ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(size=4) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
+  ylab("\nEffect of Searching Online on Probability \nof Rating Misinformation as True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=18),
+        axis.text.x  = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.y  = element_text(size=22),
+        plot.title = element_text(size = 16),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=14)) +
+  ylim(-0.05,0.2) +
+  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
+                                                      'Study 3',
+                                                      'Study 2',
+                                                      'Study 1'),limits=c(0.5,4.5)) +
+  coord_flip()
+
+#Save figure:
+ggsave('./Figures/All_4_Studies_Categorical_Preregistration.png',height=6,width=8)
+
+
+
+
+#################################################### Ordinal Scale (Seven) ####################################################
+
+#Create vector with Study names:
+Coef_names <- rev(c('Study 1',
+                    'Study 2',
+                    'Study 3',
+                    'Study 4'))
+
+#Create vector with coefficients:
+Coefficients <- rev(c(lin_results_fit_1_2$coefficients[2],
+                      lin_results_fit_2_2$coefficients[2],
+                      lin_results_fit_3_2$coefficients[2],
+                      lin_results_fit_4_2$coefficients[2]))
+
+#Create vector with upper confidence intervals:
+CI_Upper <- rev(c(CI_1_2[2,2],
+                  CI_2_2[2,2],
+                  CI_3_2[2,2],
+                  CI_4_2[2,2]))
+
+#Create vector with lower confidence intervals:
+CI_Lower <- rev(c(CI_1_2[2,1],
+                  CI_2_2[2,1],
+                  CI_3_2[2,1],
+                  CI_4_2[2,1]))         
+
+#Put together matrix with data for plot:
+d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower)
+rownames(d_matrix) <- c()
+d_matrix <- data.frame(d_matrix)
+d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
+d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
+d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
+d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+d_matrix <- d_matrix %>% arrange(desc(row_number()))
+
+#Set points on Y-Axis:
+d_matrix$x<-c(1,2,3,4)
+
+#Produce plot:
+ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(size=4) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1.5) +
+  scale_color_manual(values=c('red','blue','purple'), name = "Measure") +
+  ylab("\nEffect of Searching Online on the \nPerceived Veracity of Misinformation (7-point scale) ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=18),
+        axis.text.x  = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.y  = element_text(size=22),
+        plot.title = element_text(size = 16),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=14)) +
+  ylim(-0.10,0.8) +
+  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
+                                                      'Study 3',
+                                                      'Study 2',
+                                                      'Study 1'),limits=c(0.5,4.5)) +
+  coord_flip()
+
+#Save figure:
+ggsave('./Figures/All_4_Studies_Ordinal_Preregistration.png',height=6,width=8)
+
 
 
 

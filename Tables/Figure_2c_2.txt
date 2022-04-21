@@ -1,28 +1,31 @@
-
-\begin{table}[!htbp]
+\begin{table}[htbp]
+\centering
 \caption{Results from OLS Regression Results Presented in Figure 2c (Some Unreliable News Returned)}
-\begin{center}
-\begin{tabular}{l c c c}
-\hline
- & Categorical Measure & 4-Point Ordinal Scale & 7-Point Ordinal Scale \\
-\hline
-(Intercept)            & $0.2780^{***}$ & $3.6953^{***}$ & $2.4947^{***}$ \\
-                       & $(0.0745)$     & $(0.2573)$     & $(0.1234)$     \\
-Treatment              & $0.0878^{*}$   & $0.1747$       & $0.0988$       \\
-                       & $(0.0370)$     & $(0.1490)$     & $(0.0723)$     \\
-Age                    & $0.2897^{***}$ & $1.1877^{***}$ & $0.6336^{***}$ \\
-                       & $(0.0426)$     & $(0.1544)$     & $(0.0873)$     \\
-Ideological Congruence & $0.0004$       & $0.0073$       & $0.0043$       \\
-                       & $(0.0012)$     & $(0.0053)$     & $(0.0024)$     \\
-Education              & $-0.0178$      & $-0.1162$      & $-0.1229$      \\
-                       & $(0.0302)$     & $(0.1272)$     & $(0.0779)$     \\
-Gender                 & $-0.0024$      & $-0.0500$      & $-0.0442$      \\
-                       & $(0.0188)$     & $(0.0652)$     & $(0.0286)$     \\
-Income                 & $-0.0092$      & $-0.0693$      & $-0.0570$      \\
-                       & $(0.0219)$     & $(0.0885)$     & $(0.0431)$     \\
-\hline
-\multicolumn{4}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
+\begin{tabular}{lccc}
+\tabularnewline\midrule\midrule
+Dependent Variables:&Categorical (Rated as True)&4-Point Ordinal Scale&7-Point Ordinal Scale\\
+Model:&(1) & (2) & (3)\\
+\midrule \emph{Variables}&   &   &  \\
+Treatment (Search) & 0.1355$^{**}$ & 0.1253 & 0.1325\\
+  &(0.0448) & (0.0841) & (0.1789)\\
+Age & -0.0003 & 0.0035 & 0.0065\\
+  &(0.0012) & (0.0022) & (0.0050)\\
+Ideological Congruence & 0.3114$^{***}$ & 0.6631$^{***}$ & 1.256$^{***}$\\
+  &(0.0411) & (0.0838) & (0.1492)\\
+Education & -0.0046 & -0.0494 & -0.0602\\
+  &(0.0181) & (0.0285) & (0.0641)\\
+Gender (Female dummy) & -0.0224 & -0.1211 & -0.1108\\
+  &(0.0342) & (0.0884) & (0.1328)\\
+Income & -0.0069 & -0.0648 & -0.0720\\
+  &(0.0216) & (0.0394) & (0.0822)\\
+\midrule \emph{Fixed-effects}&   &   &  \\
+Article & Yes & Yes & Yes\\
+\midrule \emph{Fit statistics}&  & & \\
+Observations & 1,042&1,042&1,042\\
+R$^2$ & 0.14247&0.16850&0.15709\\
+Within R$^2$ & 0.08793&0.10383&0.09397\\
+\midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}
-\label{table}
-\end{center}
 \end{table}
+
