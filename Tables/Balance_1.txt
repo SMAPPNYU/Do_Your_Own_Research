@@ -1,0 +1,18 @@
+% latex table generated in R 3.6.1 by xtable 1.8-4 package
+% Thu Apr 21 15:27:24 2022
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{3cm}||p{3cm}|p{3cm}|p{3cm}|}
+  \hline
+Demographic & Average (Treatment) & Average (Control) & Difference \\ 
+  \hline
+Education & 2.32 & 2.38 & -0.06 \\ 
+  Age & 45.12 & 46.26 & -1.14 \\ 
+  Gender & 0.52 & 0.49 & 0.03 \\ 
+  Income & 0.78 & 1.1 & -0.32*** \\ 
+  Ideology & -0.08 & 0 & -0.08 \\ 
+   \hline 
+\multicolumn{3}{l}{\textsuperscript{***}$p<0.001$, \textsuperscript{**}$p<0.01$, \textsuperscript{*}$p<0.05$} \hline
+\end{tabular}
+\end{table}
+

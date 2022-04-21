@@ -6,11 +6,11 @@
   \hline
 Demographic & Mean & Standard \newline Deviation \\ 
   \hline
-Education & 2.37 & 1.2 \\ 
-  Age & 44.04 & 16.36 \\ 
-  Gender & 0.51 & 0.5 \\ 
-  Income & 0.95 & 0.95 \\ 
-  Ideology & -0.04 & 1.76 \\ 
+Education & 2.36 & 1.24 \\ 
+  Age & 44.79 & 17.41 \\ 
+  Gender & 0.47 & 0.5 \\ 
+  Income & 1.04 & 1 \\ 
+  Ideology & 0.01 & 1.74 \\ 
    \hline 
 \multicolumn{4}{l}{\textsuperscript{***}$p<0.001$, \textsuperscript{**}$p<0.01$, \textsuperscript{*}$p<0.05$} \hline
 \end{tabular}
