@@ -1,0 +1,31 @@
+\begin{table}[htbp]
+\centering
+\caption{Predicted Use of Headline or URL as a Search Query when Searching Online about Misinformation}
+\begin{tabular}{lc}
+\tabularnewline\midrule\midrule
+Dependent Variable:&Headline\_Link\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Age & $1.74\times 10^{-5}$\\
+  &(0.0014)\\
+Gender (Female dummy) & 0.0033\\
+  &(0.0426)\\
+Education & 0.0014\\
+  &(0.0115)\\
+Income & 0.0146\\
+  &(0.0158)\\
+Ideological Congruence & 0.0333\\
+  &(0.0327)\\
+Digital Literacy & -0.0043\\
+  &(0.0022)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 1,267\\
+R$^2$ & 0.05276\\
+Within R$^2$ & 0.01526\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+\end{tabular}
+\end{table}
+

@@ -1,29 +1,29 @@
 \begin{table}[htbp]
 \centering
-\caption{Results from OLS Regression Results Presented in Figure 2d (50-75 Percentage Quartile of News Quality)}
+\caption{Results from OLS Regression Results Presented in Figure 2d (25-50 Percentage Quartile of News Quality)}
 \begin{tabular}{lccc}
 \tabularnewline\midrule\midrule
-Dependent Variables:&Categorical (Rated as True)&4-Point Ordinal Scale&7-Point Ordinal Scale\\
+Dependent Variables:&Categorical Scale (True = 1)&Ordinal Scale (4-Point)&Ordinal Scale (7-Point)\\
 Model:&(1) & (2) & (3)\\
 \midrule \emph{Variables}&   &   &  \\
-Treatment (Search) & 0.0500 & 0.1171 & 0.1121\\
-  &(0.0468) & (0.0948) & (0.1711)\\
-Age & 0.0008 & 0.0040$^{*}$ & 0.0078\\
-  &(0.0011) & (0.0018) & (0.0046)\\
-Ideological Congruence & 0.2913$^{***}$ & 0.6630$^{***}$ & 1.217$^{***}$\\
-  &(0.0383) & (0.0952) & (0.1741)\\
-Education & 0.0053 & -0.0386 & -0.0231\\
-  &(0.0146) & (0.0245) & (0.0550)\\
-Gender (Female dummy) & 0.0067 & -0.0664 & -0.0579\\
-  &(0.0318) & (0.0787) & (0.1333)\\
-Income & -0.0246 & -0.0695 & -0.1200\\
-  &(0.0196) & (0.0409) & (0.0821)\\
+Treatment & 0.1698$^{*}$ & 0.2386 & 0.3939\\
+  &(0.0608) & (0.1177) & (0.2440)\\
+Age & -0.0001 & 0.0037 & 0.0068\\
+  &(0.0011) & (0.0021) & (0.0047)\\
+Ideological Congruence & 0.3105$^{***}$ & 0.6521$^{***}$ & 1.223$^{***}$\\
+  &(0.0357) & (0.0893) & (0.1486)\\
+Education & 0.0014 & -0.0363 & -0.0257\\
+  &(0.0169) & (0.0228) & (0.0596)\\
+Gender & -0.0014 & -0.0875 & -0.0488\\
+  &(0.0348) & (0.0822) & (0.1168)\\
+Income & -0.0067 & -0.0500 & -0.0760\\
+  &(0.0219) & (0.0423) & (0.0878)\\
 \midrule \emph{Fixed-effects}&   &   &  \\
 Article & Yes & Yes & Yes\\
 \midrule \emph{Fit statistics}&  & & \\
 Observations & 1,005&1,005&1,005\\
-R$^2$ & 0.12966&0.17258&0.15633\\
-Within R$^2$ & 0.07062&0.10054&0.08883\\
+R$^2$ & 0.14592&0.17707&0.16216\\
+Within R$^2$ & 0.08924&0.10140&0.09238\\
 \midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
 \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}

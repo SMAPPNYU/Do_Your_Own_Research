@@ -1,0 +1,31 @@
+\begin{table}[htbp]
+\centering
+\caption{Results from OLS Regression Results Presented in Figure 4a (False/Misleading Articles - Study 1)}
+\begin{tabular}{lc}
+\tabularnewline\midrule\midrule
+Dependent Variable:&Categorical (Rated as True)\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Treatment (Search) & 0.0568$^{*}$\\
+  &(0.0243)\\
+Age & -0.0029$^{**}$\\
+  &(0.0007)\\
+Ideological Congruence & 0.1737$^{**}$\\
+  &(0.0425)\\
+Education & -0.0066\\
+  &(0.0118)\\
+Gender (Female dummy) & -0.0329\\
+  &(0.0226)\\
+Income & -0.0021\\
+  &(0.0099)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 2,275\\
+R$^2$ & 0.05869\\
+Within R$^2$ & 0.03110\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+\end{tabular}
+\end{table}
+

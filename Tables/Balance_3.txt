@@ -1,16 +1,16 @@
 % latex table generated in R 3.6.1 by xtable 1.8-4 package
-% Thu Apr 21 15:27:25 2022
+% Thu Feb 23 17:59:29 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{|p{3cm}||p{3cm}|p{3cm}|}
   \hline
 Demographic & Mean & Standard \newline Deviation \\ 
   \hline
-Education & 2.37 & 1.2 \\ 
-  Age & 44.04 & 16.36 \\ 
-  Gender & 0.51 & 0.5 \\ 
-  Income & 0.95 & 0.95 \\ 
-  Ideology & -0.04 & 1.76 \\ 
+Education & 2.36 & 1.21 \\ 
+  Age & 460.51 & 199.41 \\ 
+  Gender & 0 & 0 \\ 
+  Income & 0.95 & 0.97 \\ 
+  Ideology & -0.02 & 1.78 \\ 
    \hline 
 \multicolumn{4}{l}{\textsuperscript{***}$p<0.001$, \textsuperscript{**}$p<0.01$, \textsuperscript{*}$p<0.05$} \hline
 \end{tabular}

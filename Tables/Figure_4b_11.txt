@@ -1,0 +1,31 @@
+\begin{table}[htbp]
+\centering
+\caption{Results from OLS Regression Results Presented in Figure 4b (True Mainstream Articles - Study 4)}
+\begin{tabular}{lc}
+\tabularnewline\midrule\midrule
+Dependent Variable:&Categorical (Rated as True)\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Treatment (Search) & -0.0022\\
+  &(0.0225)\\
+Age & -0.0021\\
+  &(0.0011)\\
+Ideological Congruence & 0.0897\\
+  &(0.0612)\\
+Education & 0.0066\\
+  &(0.0140)\\
+Gender (Female dummy) & -0.0166\\
+  &(0.0459)\\
+Income & 0.0328\\
+  &(0.0209)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 904\\
+R$^2$ & 0.04582\\
+Within R$^2$ & 0.01510\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+\end{tabular}
+\end{table}
+

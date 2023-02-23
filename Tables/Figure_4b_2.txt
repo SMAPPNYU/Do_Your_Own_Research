@@ -1,31 +1,31 @@
 \begin{table}[htbp]
 \centering
-\caption{Results from OLS Regression Results Presented in Figure 4b (Lower half of news quality returned - upper half of digital literacy)}
-\begin{tabular}{lccc}
+\caption{Results from OLS Regression Results Presented in Figure 4b (True Mainstream Articles - Study 1)}
+\begin{tabular}{lc}
 \tabularnewline\midrule\midrule
-Dependent Variables:&Categorical (Rated as True)&4-Point Ordinal Scale&7-Point Ordinal Scale\\
-Model:&(1) & (2) & (3)\\
-\midrule \emph{Variables}&   &   &  \\
-Treatment (Search) & 0.1353 & 0.1335 & 0.0672\\
-  &(0.0708) & (0.1477) & (0.3021)\\
-Age & 0.0010 & 0.0059 & 0.0115\\
-  &(0.0013) & (0.0029) & (0.0062)\\
-Ideological Congruence & 0.2821$^{***}$ & 0.6433$^{***}$ & 1.228$^{***}$\\
-  &(0.0642) & (0.1270) & (0.1955)\\
-Education & -0.0220 & -0.0501 & -0.0869\\
-  &(0.0221) & (0.0399) & (0.0872)\\
-Gender (Female dummy) & -0.0152 & -0.0664 & -0.1367\\
-  &(0.0500) & (0.1064) & (0.1765)\\
-Income & 0.0044 & -0.0685 & -0.0549\\
-  &(0.0323) & (0.0673) & (0.1569)\\
-\midrule \emph{Fixed-effects}&   &   &  \\
-Article & Yes & Yes & Yes\\
-\midrule \emph{Fit statistics}&  & & \\
-Observations & 594&594&594\\
-R$^2$ & 0.14937&0.17666&0.17461\\
-Within R$^2$ & 0.07369&0.08364&0.07717\\
-\midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
-\multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+Dependent Variable:&Categorical (Rated as True)\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Treatment (Search) & 0.0453$^{*}$\\
+  &(0.0173)\\
+Age & -0.0003\\
+  &(0.0005)\\
+Ideological Congruence & 0.2245$^{***}$\\
+  &(0.0306)\\
+Education & 0.0149\\
+  &(0.0074)\\
+Gender (Female dummy) & -0.0225\\
+  &(0.0190)\\
+Income & 0.0191$^{*}$\\
+  &(0.0081)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 3,487\\
+R$^2$ & 0.10122\\
+Within R$^2$ & 0.02287\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}
 \end{table}
 

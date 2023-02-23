@@ -1,29 +1,29 @@
 \begin{table}[htbp]
 \centering
-\caption{Results from OLS Regression Results Presented in Figure 2d (0-25 Percentage Quartile of News Quality)}
+\caption{Results from OLS Regression Results Presented in Figure 2d (75-100 Percentage Quartile of News Quality)}
 \begin{tabular}{lccc}
 \tabularnewline\midrule\midrule
-Dependent Variables:&Categorical (Rated as True)&4-Point Ordinal Scale&7-Point Ordinal Scale\\
+Dependent Variables:&Categorical Scale (True = 1)&Ordinal Scale (4-Point)&Ordinal Scale (7-Point)\\
 Model:&(1) & (2) & (3)\\
 \midrule \emph{Variables}&   &   &  \\
-Treatment (Search) & 0.1335$^{**}$ & 0.1521 & 0.1410\\
-  &(0.0421) & (0.0869) & (0.1710)\\
-Age & -0.0002 & 0.0030 & 0.0051\\
-  &(0.0012) & (0.0021) & (0.0050)\\
-Ideological Congruence & 0.3172$^{***}$ & 0.6762$^{***}$ & 1.265$^{***}$\\
-  &(0.0420) & (0.0866) & (0.1502)\\
-Education & 0.0008 & -0.0360 & -0.0344\\
-  &(0.0185) & (0.0282) & (0.0632)\\
-Gender (Female dummy) & -0.0094 & -0.1079 & -0.1336\\
-  &(0.0327) & (0.0835) & (0.1303)\\
-Income & -0.0126 & -0.0593 & -0.0696\\
-  &(0.0227) & (0.0440) & (0.0895)\\
+Treatment & 0.0449 & 0.0126 & -0.1390\\
+  &(0.0545) & (0.1175) & (0.2324)\\
+Age & 0.0006 & 0.0046$^{*}$ & 0.0096\\
+  &(0.0013) & (0.0020) & (0.0053)\\
+Ideological Congruence & 0.3018$^{***}$ & 0.6468$^{***}$ & 1.237$^{***}$\\
+  &(0.0374) & (0.0855) & (0.1539)\\
+Education & 0.0023 & -0.0426 & -0.0378\\
+  &(0.0159) & (0.0267) & (0.0539)\\
+Gender & -0.0075 & -0.0727 & -0.0759\\
+  &(0.0284) & (0.0713) & (0.1141)\\
+Income & -0.0117 & -0.0369 & -0.0334\\
+  &(0.0191) & (0.0389) & (0.0730)\\
 \midrule \emph{Fixed-effects}&   &   &  \\
 Article & Yes & Yes & Yes\\
 \midrule \emph{Fit statistics}&  & & \\
-Observations & 1,006&1,006&1,006\\
-R$^2$ & 0.14505&0.17429&0.15820\\
-Within R$^2$ & 0.08865&0.10520&0.09434\\
+Observations & 1,008&1,008&1,008\\
+R$^2$ & 0.12842&0.16508&0.15710\\
+Within R$^2$ & 0.07246&0.09146&0.08932\\
 \midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
 \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}
