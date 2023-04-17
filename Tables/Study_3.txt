@@ -6,24 +6,24 @@
 Dependent Variables:&Categorical (Rated as True)&7-Point Ordinal Scale\\
 Model:&(1) & (2)\\
 \midrule \emph{Variables}&   &  \\
-Treatment (Search) & 0.0684$^{**}$ & 0.2717$^{**}$\\
-  &(0.0216) & (0.0783)\\
-Age & -0.0010 & 0.0001\\
-  &(0.0007) & (0.0025)\\
-Ideological Congruence & 0.1477$^{***}$ & 0.6619$^{***}$\\
-  &(0.0284) & (0.1062)\\
-Education & 0.0104 & 0.0513\\
-  &(0.0095) & (0.0381)\\
-Gender (Female dummy) & -0.0686$^{*}$ & -0.1125\\
-  &(0.0259) & (0.1071)\\
-Income & 0.0178 & 0.0208\\
-  &(0.0155) & (0.0543)\\
+Treatment (Search) & 0.0662$^{**}$ & 0.2322$^{**}$\\
+  &(0.0195) & (0.0743)\\
+Age & -0.0015 & -0.0008\\
+  &(0.0008) & (0.0026)\\
+Ideological Congruence & 0.1912$^{***}$ & 0.8511$^{***}$\\
+  &(0.0369) & (0.1387)\\
+Education & 0.0089 & 0.0287\\
+  &(0.0097) & (0.0392)\\
+Gender (Female dummy) & -0.0632$^{*}$ & -0.1021\\
+  &(0.0245) & (0.0992)\\
+Income & 0.0111 & 0.0134\\
+  &(0.0143) & (0.0533)\\
 \midrule \emph{Fixed-effects}&   &  \\
 Article & Yes & Yes\\
 \midrule \emph{Fit statistics}&  & \\
-Observations & 3,394&3,394\\
-R$^2$ & 0.08458&0.09023\\
-Within R$^2$ & 0.02695&0.02477\\
+Observations & 1,964&1,964\\
+R$^2$ & 0.10520&0.11288\\
+Within R$^2$ & 0.04113&0.04231\\
 \midrule\midrule\multicolumn{3}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
 \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}

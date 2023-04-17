@@ -1,31 +1,31 @@
 \begin{table}[htbp]
 \centering
-\caption{Results from OLS Regression Results Presented in Figure 4b (Lower half of news quality returned - upper half of digital literacy)}
-\begin{tabular}{lccc}
+\caption{Results from OLS Regression Results Presented in Figure 4b (True Low Quality Articles - Study 1)}
+\begin{tabular}{lc}
 \tabularnewline\midrule\midrule
-Dependent Variables:&Categorical (Rated as True)&4-Point Ordinal Scale&7-Point Ordinal Scale\\
-Model:&(1) & (2) & (3)\\
-\midrule \emph{Variables}&   &   &  \\
-Treatment (Search) & 0.0026 & -0.0562 & -0.2533\\
-  &(0.0430) & (0.0963) & (0.1781)\\
-Age & 0.0022 & 0.0070$^{*}$ & 0.0144$^{*}$\\
-  &(0.0013) & (0.0030) & (0.0068)\\
-Ideological Congruence & 0.2733$^{***}$ & 0.6860$^{***}$ & 1.312$^{***}$\\
-  &(0.0663) & (0.1242) & (0.2287)\\
-Education & -0.0054 & -0.0427 & -0.0523\\
-  &(0.0202) & (0.0373) & (0.0830)\\
-Gender (Female dummy) & -0.0158 & -0.0660 & -0.1427\\
-  &(0.0430) & (0.0913) & (0.1616)\\
-Income & -0.0290 & -0.0731 & -0.1138\\
-  &(0.0230) & (0.0595) & (0.1230)\\
-\midrule \emph{Fixed-effects}&   &   &  \\
-Article & Yes & Yes & Yes\\
-\midrule \emph{Fit statistics}&  & & \\
-Observations & 603&603&603\\
-R$^2$ & 0.14163&0.19061&0.18426\\
-Within R$^2$ & 0.06090&0.08902&0.08678\\
-\midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
-\multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+Dependent Variable:&Categorical (Rated as True)\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Treatment (Search) & 0.1052$^{***}$\\
+  &(0.0258)\\
+Age & -0.0005\\
+  &(0.0007)\\
+Ideological Congruence & 0.1674$^{**}$\\
+  &(0.0417)\\
+Education & 0.0248$^{*}$\\
+  &(0.0102)\\
+Gender (Female dummy) & -0.0449\\
+  &(0.0230)\\
+Income & -0.0297$^{*}$\\
+  &(0.0113)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 2,782\\
+R$^2$ & 0.12549\\
+Within R$^2$ & 0.04057\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}
 \end{table}
 

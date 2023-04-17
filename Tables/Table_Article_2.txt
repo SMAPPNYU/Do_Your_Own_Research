@@ -1,0 +1,49 @@
+% latex table generated in R 3.6.1 by xtable 1.8-4 package
+% Thu Feb 23 18:39:44 2023
+\begin{table}[ht]
+\centering
+\caption{Search Terms and Quality of Information Returned} 
+\begin{tabular}{|p{11cm}|p{3cm}|p{3cm}|p{3cm}|}
+  \hline
+Search Term & Exposed to Unreliable Result & Ideologically Congruent & Digital Literacy Score \\ 
+  \hline
+jennifer Weisselberg trump incriminate & 0 & 0 & 49 \\ 
+  jennifer weisselberg incrimination trump & 0 & 0 & 55 \\ 
+  weisselberg trump indictment & 0 & 1 & 66 \\ 
+  New York prosecutors have a witness directly incriminating Donald Trump & 1 & 0 & 48 \\ 
+  Jennifer Weisselberg and Trump fake news & 0 & 1 & 57 \\ 
+  weisselberg daughter in law testimony & 0 & 1 & 61 \\ 
+  Looks like New York prosecutors have a witness directly incriminating Donald Trump & 1 & 1 & 64 \\ 
+  Palmer REport indicting trump & 1 & 1 & 65 \\ 
+  witness trump & 0 & 1 & 62 \\ 
+  Looks like New York prosecutors have a witness directly incriminating Donald Trump & 1 & 0 & 46 \\ 
+  Jennifer Weisselberg and Trump & 0 & 1 & 57 \\ 
+  Jennifer Weisselberg\%E2\%80\%99s testimony & 0 & 1 & 60 \\ 
+  New York prosecutors have a witness directly incriminating Donald Trump & 1 & 0 & 66 \\ 
+  weisselberg daughter-in-law & 0 & 1 & 61 \\ 
+  New York prosecutors have a witness directly incriminating Donald Trump & 1 & 1 & 45 \\ 
+  NY indicting trump & 0 & 1 & 65 \\ 
+   Allen Weisselberg trump incriminate & 0 & 0 & 49 \\ 
+  Allen Weisselberg trump incriminate & 0 & 0 & 49 \\ 
+  New York Prosecuters inditing donald trump & 0 & 0 & 57 \\ 
+  Jennifer Weisselberg and Trump & 0 & 1 & 57 \\ 
+  Jennifer Weisselberg and Trump & 0 & 1 & 57 \\ 
+  New York prosecutors have a witness directly incriminating Donald Trump & 1 & 0 & 32 \\ 
+  Jennifer Weisselberg and Trump fox news & 0 & 1 & 57 \\ 
+  Weisselberg trump news jennifer & 0 & 1 & 45 \\ 
+  Jennifer Weisselberg & 0 & 1 & 58 \\ 
+  Weisselberg trump news & 0 & 1 & 45 \\ 
+  prosecutors have a witness directly incriminating Donald Trump & 1 & 1 & 56 \\ 
+  Will Jennifer Weisslberg testify against trump & 0 & 0 & 58 \\ 
+  what has jennifer weisselberg testified & 0 & 0 & 64 \\ 
+  Jennifer Weisselberg and Trump fake news & 0 & 1 & 57 \\ 
+  Jennifer Weisselberg witness Trump trial & 0 & 0 & 62 \\ 
+  Jennifer Weisselberg trump allegations & 0 & 0 & 59 \\ 
+  Looks like New York prosecutors have a witness directly incriminating Donald Trump & 1 & 1 & 45 \\ 
+  NY indicting trump & 0 & 1 & 65 \\ 
+  jennifer weisselberg & 0 & 0 & 61 \\ 
+  Jennifer Weisselberg testimony NY prosecutors Trump & 0 & 0 & 60 \\ 
+   \hline
+\end{tabular}
+\end{table}
+

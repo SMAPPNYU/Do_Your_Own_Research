@@ -1,0 +1,31 @@
+\begin{table}[htbp]
+\centering
+\caption{Results from OLS Regression Results Presented in Figure 4c (Betweenn-Respondent Experiment - False/Misleading Articles)}
+\begin{tabular}{lc}
+\tabularnewline\midrule\midrule
+Dependent Variable:&Categorical (Rated as True)\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Treatment (Search) & 0.0759$^{**}$\\
+  &(0.0214)\\
+Age & -0.0020$^{**}$\\
+  &(0.0006)\\
+Ideological Congruence & 0.2270$^{***}$\\
+  &(0.0313)\\
+Education & -0.0054\\
+  &(0.0091)\\
+Gender (Female dummy) & -0.0136\\
+  &(0.0181)\\
+Income & -0.0014\\
+  &(0.0087)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 3,760\\
+R$^2$ & 0.09010\\
+Within R$^2$ & 0.04544\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+\end{tabular}
+\end{table}
+

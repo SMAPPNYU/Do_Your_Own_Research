@@ -1,0 +1,29 @@
+% latex table generated in R 3.6.1 by xtable 1.8-4 package
+% Thu Feb 23 18:39:43 2023
+\begin{table}[ht]
+\centering
+\caption{Cosine Similarity of Search Queries by False/Misleading Articles} 
+\begin{tabular}{|p{11cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
+  \hline
+Headline & Article Lean & Similarity Among Liberals & Similarity Among Conservatives & Similarity Among Moderates & Similarity Among Everyone \\ 
+  \hline
+AZ State Senator Demands Biden Electors Be Recalled, New Election Be Held After Shocking Audit Revelations & Conservative & 0.223 & 0.130 & 0.475 & 0.204 \\ 
+  Enthusiasm for Trump's rally in Arizona dwarfs President Biden's town hall just days earlier & Conservative & 0.251 & 0.299 & 0.504 & 0.262 \\ 
+  Ashli Babbitt's Mom: Nancy Pelosi Orchestrated the Killing of My Daughter & Conservative & 0.307 & 0.269 & 0.295 & 0.298 \\ 
+  Foreign News Media Laughs at Joe Biden: He 'Needs a Retirement Home and a Warm Bowl of Soup' & Conservative & 0.285 & 0.252 & 0.266 & 0.261 \\ 
+  Indictment shows it was Hillary who colluded with Russia & Conservative & 0.285 & 0.255 & 0.309 & 0.284 \\ 
+  Looks like New York prosecutors have a witness directly incriminating Donald Trump & Liberal & 0.314 & 0.287 & 0.320 & 0.330 \\ 
+  Rand Paul is left speechless after Dr. Fauci tears into him for lying in Senate hearing & Liberal & 0.388 & 0.263 & 0.448 & 0.408 \\ 
+  "This Is Worrying Me Quite A Bit": mRNA Vaccine Inventor Shares Viral Thread Showing COVID Surge In Most-Vaxxed Countries & Neutral & 0.204 & 0.204 & 0.328 & 0.212 \\ 
+  “Zero COVID” Catastrophe: Participating Nations See New Records Across the Board & Neutral & 0.395 & 0.171 & 0.415 & 0.317 \\ 
+  Chicago Chamber Of Commerce Rages As Average Unemployed Illinoisan Parent Earns \$35/Hour Sitting On The Couch & Conservative & 0.286 & 0.281 & 0.221 & 0.280 \\ 
+  NIH Director Shredded Over Risky Research In Wuhan After CNN Interview Goes Sideways & Conservative & 0.173 & 0.153 & 0.269 & 0.165 \\ 
+  U.S. faces engineered famine as COVID lockdowns and vax mandates could lead to widespread hunger, unrest this winter & Conservative & 0.213 & 0.163 & 0.204 & 0.182 \\ 
+  'Falsified Data': Pfizer Vaccine Trial Had Major Flaws, Whistleblower Tells Peer-Reviewed Journal & Conservative & 0.261 & 0.229 & 0.635 & 0.263 \\ 
+  Biden Gang Reportedly Running Two Secret Lists Used to Prevent Outspoken Conservatives from Owning Guns – Laura Loomer Speaks Out on This Injustice & Conservative & 0.248 & 0.146 & 0.189 & 0.188 \\ 
+  Banks: Pelosi Doesn't Want 'Tough Questions' Because She's Responsible for Breakdown of Security on Jan. 6' & Conservative & 0.271 & 0.248 & 0.305 & 0.264 \\ 
+  Trump Rejects 'Fake' Jan. 6 Panel: 'Will Nancy Investigate Herself?' & Conservative & 0.468 & 0.236 & 0.227 & 0.322 \\ 
+   \hline
+\end{tabular}
+\end{table}
+

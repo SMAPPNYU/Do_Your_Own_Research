@@ -1,29 +1,31 @@
 \begin{table}[htbp]
 \centering
-\caption{Results from OLS Regression Results Presented in Figure 4c (Upper Half of News Quality Returned - Ideological Congruence)}
-\begin{tabular}{lccc}
+\caption{Results from OLS Regression Results Presented in Figure 4c (Between-Respondent Experiment - True Low-Quality Articles)}
+\begin{tabular}{lc}
 \tabularnewline\midrule\midrule
-Dependent Variables:&Categorical (Rated as True)&4-Point Ordinal Scale&7-Point Ordinal Scale\\
-Model:&(1) & (2) & (3)\\
-\midrule \emph{Variables}&   &   &  \\
-Treatment (Search) & -0.1016 & -0.1842 & -0.2711\\
-  &(0.0699) & (0.1291) & (0.2254)\\
-Age & 0.0018 & 0.0062 & 0.0145\\
-  &(0.0025) & (0.0037) & (0.0082)\\
-Education & 0.0201 & -0.0451 & -0.0550\\
-  &(0.0262) & (0.0492) & (0.0782)\\
-Gender (Female dummy) & 0.0899 & 0.0982 & 0.2287\\
-  &(0.0585) & (0.1030) & (0.1919)\\
-Income & -0.0521 & -0.0478 & -0.0640\\
-  &(0.0278) & (0.0613) & (0.1127)\\
-\midrule \emph{Fixed-effects}&   &   &  \\
-Article & Yes & Yes & Yes\\
-\midrule \emph{Fit statistics}&  & & \\
-Observations & 317&317&317\\
-R$^2$ & 0.09708&0.10965&0.11950\\
-Within R$^2$ & 0.02562&0.02610&0.02510\\
-\midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
-\multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+Dependent Variable:&Categorical (Rated as True)\\
+Model:&(1)\\
+\midrule \emph{Variables}&  \\
+Treatment (Search) & 0.1493$^{***}$\\
+  &(0.0212)\\
+Age & -0.0004\\
+  &(0.0006)\\
+Ideological Congruence & 0.1687$^{***}$\\
+  &(0.0289)\\
+Education & 0.0170\\
+  &(0.0085)\\
+Gender (Female dummy) & -0.0121\\
+  &(0.0186)\\
+Income & -0.0114\\
+  &(0.0096)\\
+\midrule \emph{Fixed-effects}&  \\
+Article & Yes\\
+\midrule \emph{Fit statistics}&  \\
+Observations & 4,132\\
+R$^2$ & 0.14541\\
+Within R$^2$ & 0.04830\\
+\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
 \end{tabular}
 \end{table}
 
