@@ -38,3 +38,9 @@ There are four directories:
 
 (4) Tables: All the tables produced by the two R files in the code directory are located here.
 
+
+## Software Information
+
+The txt files sessionInfo_main.txt (1) and sessionInfo_suppl_mat.txt (2) reports the version of R and the version of packages used to generate that figures and the tables in the two R files in the code directory.
+
+
