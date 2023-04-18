@@ -1,31 +1,37 @@
+
 \begin{table}[htbp]
-\centering
-\caption{Results from OLS Regression Results Presented in Figure 3a}
-\begin{tabular}{lc}
-\tabularnewline\midrule\midrule
-Dependent Variable:&Returns Unreliable News Source\\
-Model:&(1)\\
-\midrule \emph{Variables}&  \\
-Age & 0.0027\\
-  &(0.0018)\\
-Gender & 0.0172\\
-  &(0.0538)\\
-Education & 0.0044\\
-  &(0.0194)\\
-Income & -0.0145\\
-  &(0.0267)\\
-Ideological Congruence & 0.0812\\
-  &(0.0443)\\
-Digital Literacy Score & -0.0043\\
-  &(0.0028)\\
-\midrule \emph{Fixed-effects}&  \\
-Article & Yes\\
-\midrule \emph{Fit statistics}&  \\
-Observations & 501\\
-R$^2$ & 0.16051\\
-Within R$^2$ & 0.01766\\
-\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
-\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
-\end{tabular}
+   \caption{Results from OLS Regression Results Presented in Figure 3a}
+   \centering
+   \begin{tabular}{lc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable:    & Returns Unreliable News Source\\  
+      Model:                 & (1)\\  
+      \midrule
+      \emph{Variables}\\
+      Age                    & 0.0027\\   
+                             & (0.0018)\\   
+      Gender (Female dummy)  & 0.0172\\   
+                             & (0.0538)\\   
+      Education              & 0.0044\\   
+                             & (0.0194)\\   
+      Income                 & -0.0145\\   
+                             & (0.0267)\\   
+      Ideological Congruence & 0.0812\\   
+                             & (0.0443)\\   
+      Digital Literacy Score & -0.0043\\   
+                             & (0.0028)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Article                & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations           & 501\\  
+      R$^2$                  & 0.16051\\  
+      Within R$^2$           & 0.01766\\  
+      \midrule \midrule
+      \multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+      \multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+   \end{tabular}
 \end{table}
+
 

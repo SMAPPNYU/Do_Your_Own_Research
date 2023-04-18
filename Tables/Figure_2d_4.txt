@@ -1,31 +1,37 @@
+
 \begin{table}[htbp]
-\centering
-\caption{Results from OLS Regression Results Presented in Figure 2d (75-100 Percentage Quartile of News Quality)}
-\begin{tabular}{lccc}
-\tabularnewline\midrule\midrule
-Dependent Variables:&Categorical Scale (True = 1)&Ordinal Scale (4-Point)&Ordinal Scale (7-Point)\\
-Model:&(1) & (2) & (3)\\
-\midrule \emph{Variables}&   &   &  \\
-Treatment & 0.0449 & 0.0126 & -0.1390\\
-  &(0.0545) & (0.1175) & (0.2324)\\
-Age & 0.0006 & 0.0046$^{*}$ & 0.0096\\
-  &(0.0013) & (0.0020) & (0.0053)\\
-Ideological Congruence & 0.3018$^{***}$ & 0.6468$^{***}$ & 1.237$^{***}$\\
-  &(0.0374) & (0.0855) & (0.1539)\\
-Education & 0.0023 & -0.0426 & -0.0378\\
-  &(0.0159) & (0.0267) & (0.0539)\\
-Gender & -0.0075 & -0.0727 & -0.0759\\
-  &(0.0284) & (0.0713) & (0.1141)\\
-Income & -0.0117 & -0.0369 & -0.0334\\
-  &(0.0191) & (0.0389) & (0.0730)\\
-\midrule \emph{Fixed-effects}&   &   &  \\
-Article & Yes & Yes & Yes\\
-\midrule \emph{Fit statistics}&  & & \\
-Observations & 1,008&1,008&1,008\\
-R$^2$ & 0.12842&0.16508&0.15710\\
-Within R$^2$ & 0.07246&0.09146&0.08932\\
-\midrule\midrule\multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
-\multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
-\end{tabular}
+   \caption{Results from OLS Regression Results Presented in Figure 2d (75-100 Percentage Quartile of News Quality)}
+   \centering
+   \begin{tabular}{lccc}
+      \tabularnewline \midrule \midrule
+      Dependent Variables:   & Categorical Scale (True = 1) & Ordinal Scale (4-Point) & Ordinal Scale (7-Point)\\  
+      Model:                 & (1)                          & (2)                     & (3)\\  
+      \midrule
+      \emph{Variables}\\
+      Treatment (Search)     & 0.0449                       & 0.0126                  & -0.1390\\   
+                             & (0.0545)                     & (0.1175)                & (0.2324)\\   
+      Age                    & 0.0006                       & 0.0046$^{*}$            & 0.0096\\   
+                             & (0.0013)                     & (0.0020)                & (0.0053)\\   
+      Ideological Congruence & 0.3018$^{***}$               & 0.6468$^{***}$          & 1.237$^{***}$\\   
+                             & (0.0374)                     & (0.0855)                & (0.1539)\\   
+      Education              & 0.0023                       & -0.0426                 & -0.0378\\   
+                             & (0.0159)                     & (0.0267)                & (0.0539)\\   
+      Gender (Female dummy)  & -0.0075                      & -0.0727                 & -0.0759\\   
+                             & (0.0284)                     & (0.0713)                & (0.1141)\\   
+      Income                 & -0.0117                      & -0.0369                 & -0.0334\\   
+                             & (0.0191)                     & (0.0389)                & (0.0730)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Article                & Yes                          & Yes                     & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations           & 1,008                        & 1,008                   & 1,008\\  
+      R$^2$                  & 0.12842                      & 0.16508                 & 0.15710\\  
+      Within R$^2$           & 0.07246                      & 0.09146                 & 0.08932\\  
+      \midrule \midrule
+      \multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+      \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+   \end{tabular}
 \end{table}
+
 

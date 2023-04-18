@@ -1,31 +1,37 @@
+
 \begin{table}[htbp]
-\centering
-\caption{Results from OLS Regression Results Presented in Figure 4c (Within-Respondent Experiment - True Mainstream Articles)}
-\begin{tabular}{lc}
-\tabularnewline\midrule\midrule
-Dependent Variable:&Categorical (Rated as True)\\
-Model:&(1)\\
-\midrule \emph{Variables}&  \\
-Treatment (Search) & -0.0121\\
-  &(0.0103)\\
-Age & -0.0009$^{*}$\\
-  &(0.0004)\\
-Ideological Congruence & 0.2270$^{***}$\\
-  &(0.0363)\\
-Education & 0.0185$^{***}$\\
-  &(0.0048)\\
-Gender (Female dummy) & 0.0055\\
-  &(0.0101)\\
-Income & -0.0022\\
-  &(0.0079)\\
-\midrule \emph{Fixed-effects}&  \\
-Article & Yes\\
-\midrule \emph{Fit statistics}&  \\
-Observations & 7,772\\
-R$^2$ & 0.09534\\
-Within R$^2$ & 0.01445\\
-\midrule\midrule\multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
-\multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
-\end{tabular}
+   \caption{Results from OLS Regression Results Presented in Figure 4c (Within-Respondent Experiment - True Mainstream Articles)}
+   \centering
+   \begin{tabular}{lc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable:    & Categorical (Rated as True)\\  
+      Model:                 & (1)\\  
+      \midrule
+      \emph{Variables}\\
+      Treatment (Search)     & -0.0121\\   
+                             & (0.0103)\\   
+      Age                    & -0.0009$^{*}$\\   
+                             & (0.0004)\\   
+      Ideological Congruence & 0.2270$^{***}$\\   
+                             & (0.0363)\\   
+      Education              & 0.0185$^{***}$\\   
+                             & (0.0048)\\   
+      Gender (Female dummy)  & 0.0055\\   
+                             & (0.0101)\\   
+      Income                 & -0.0022\\   
+                             & (0.0079)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Article                & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations           & 7,772\\  
+      R$^2$                  & 0.09534\\  
+      Within R$^2$           & 0.01445\\  
+      \midrule \midrule
+      \multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+      \multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+   \end{tabular}
 \end{table}
+
 
