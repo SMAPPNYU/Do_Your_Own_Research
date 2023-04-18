@@ -46,24 +46,12 @@
 #Load in Libraries:
 library(ggplot2)
 library(dplyr)
-library(reshape2)
-library(tidyverse)
-library(Rmisc)
-library(plm)
-library(lmtest)
-library(sandwich)
-library(rsq)
-library(stargazer)
 library(xtable)
-library(irr)
-library(texreg)
-library(multiwayvcov)
-library(miceadds)
-library(mice)
-library(miceadds)
-library(plm)
+library(stats)
 library(fixest)
-library(broom)
+library(irr)
+library(lmtest)
+library(Rmisc)
 
 #Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 1:
 
@@ -317,6 +305,7 @@ ggsave('./Figures/All_4_Studies_Ordinal.png',height=6,width=8)
 #Pull in Fact-Checker Ideological Perspective
 #Pull in this data: Search Experiment 1: Study 1:
 Study_5_df <- read.csv('./Data/Study_5_df_FM.csv')
+FCer_details <- read.csv('./Data/FCer_details.csv')
 Study_5_df$Article_day <- as.character(Study_5_df$Article_day)
 Study_5_df$ResponseId <- as.character(Study_5_df$ResponseId)
 Study_5_df <- merge(Study_5_df,FCer_details,by='Article_day')
@@ -1345,8 +1334,8 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
         axis.title.y = element_text(size=18),
         axis.text.y  = element_text(size=16),
         plot.title = element_text(size = 18),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18),
         title =element_text(size=20, face='bold')) +
   ylim(-0.1,0.2) +
   scale_x_continuous("Study Number\n",breaks=c(1,2,3,4,5),labels=rev(c('Study 1',
@@ -1394,7 +1383,7 @@ CI_1_2_2 <- confint(lin_results_fit_1_2_2,se='twoway')
 
 
 #Run OLS Model with clustered standard errors:
-lin_results_fit_1_3_1 = feols(True_Dummy ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Misl_False_Search_MF)
+lin_results_fit_1_3_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Misl_False_Search_MF)
 #Produce confidence intervals with clustered standard errors:
 CI_1_3_1 <- confint(lin_results_fit_1_3_1,se='twoway')
 
@@ -1429,7 +1418,7 @@ lin_results_fit_2_2_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Con
 CI_2_2_2 <- confint(lin_results_fit_2_2_2,se='twoway')
 
 #Run OLS Model with clustered standard errors:
-lin_results_fit_2_3_1 = feols(True_Dummy ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Data_Bef_Aft_MF)
+lin_results_fit_2_3_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Data_Bef_Aft_MF)
 #Produce confidence intervals with clustered standard errors:
 CI_2_3_1 <- confint(lin_results_fit_2_3_1,se='twoway')
 
@@ -1464,7 +1453,7 @@ lin_results_fit_3_2_2 = feols(Likert_Evaluation ~ Treatment + Age + Dummy_Congru
 CI_3_2_2 <- confint(lin_results_fit_3_2_2,se='twoway')
 
 #Run linear regression and produce coefficient values:
-lin_results_fit_3_3_1 = feols(True_Dummy ~ Treatment + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
+lin_results_fit_3_3_1 = feols(Susc_FN ~ Treatment + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
 #Produce confidence intervals using clustered standard errors:
 CI_3_3_1 <- confint(lin_results_fit_3_3_1,se='twoway')
 
@@ -1499,12 +1488,12 @@ lin_results_fit_4_2_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Con
 CI_4_2_2 <- confint(lin_results_fit_4_2_2,se='twoway')
 
 #Run OLS Model with clustered standard errors:
-lin_results_fit_4_3_1 = feols(True_Dummy ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Data_Bef_Aft_Covid)
+lin_results_fit_4_3_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_False_M)
 #Produce confidence intervals with clustered standard errors:
 CI_4_3_1 <- confint(lin_results_fit_4_3_1,se='twoway')
 
 #Run OLS Model with clustered standard errors:
-lin_results_fit_4_3_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Data_Bef_Aft_Covid)
+lin_results_fit_4_3_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_False_M)
 #Produce confidence intervals with clustered standard errors:
 CI_4_3_2 <- confint(lin_results_fit_4_3_2,se='twoway')
 
@@ -1662,9 +1651,6 @@ d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
 d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
 d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
 
-
-library(ggplot2)
-
 #Transform coefficient names into a factor
 d_matrix$Coef_names <- factor(d_matrix$Coef_names,levels=c('Study 1',
                                                            'Study 2',
@@ -1695,8 +1681,8 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
         axis.title.y = element_text(size=18),
         axis.text.y  = element_text(size=16),
         plot.title = element_text(size = 18),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18),
         title =element_text(size=20, face='bold')) +
   ylim(-0.1,0.3) +
   scale_x_continuous("Study Number\n",breaks=c(1,2,3,4,5),labels=rev(c('Study 1',
@@ -1934,8 +1920,7 @@ d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
 
 #Transform coefficient names into a factor
 d_matrix$Coef_names <- factor(d_matrix$Coef_names,levels=c('Between',
-                                                           'Within',
-))
+                                                           'Within'))
 
 #Arrange dataframe by coefficient names
 d_matrix <- d_matrix %>% arrange(Coef_names)
@@ -1961,8 +1946,8 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
         axis.title.y = element_text(size=18),
         axis.text.y  = element_text(size=16),
         plot.title = element_text(size = 18),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=14),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18),
         title =element_text(size=20, face='bold')) +
   ylim(-0.1,0.25) +
   scale_x_continuous("Study Type\n",breaks=c(1,2),labels=rev(c('Between',
@@ -3251,7 +3236,14 @@ write(print(xt,include.rownames=FALSE,
 
 
 
+mean(T_Mainstream_Data_Study_1$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
+mean(T_Mainstream_Data_Study_2$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
+mean(T_Mainstream_Data_Study_3$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
+mean(T_Mainstream_Data_Study_4$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
+mean(T_Mainstream_Data_Study_5$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
 
+
+writeLines(capture.output(sessionInfo()), "sessionInfo_main.txt")
 
 
 

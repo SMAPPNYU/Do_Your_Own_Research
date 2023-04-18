@@ -1,0 +1,37 @@
+
+\begin{table}[htbp]
+   \caption{Results from OLS Regression Results Presented in Figure 2d (50-75 Percentage Quartile of News Quality)}
+   \centering
+   \begin{tabular}{lccc}
+      \tabularnewline \midrule \midrule
+      Dependent Variables:   & Categorical Scale (True = 1) & Ordinal Scale (4-Point) & Ordinal Scale (7-Point)\\  
+      Model:                 & (1)                          & (2)                     & (3)\\  
+      \midrule
+      \emph{Variables}\\
+      Treatment (Search)     & 0.0120                       & -0.0769                 & -0.1911\\   
+                             & (0.0469)                     & (0.0731)                & (0.1619)\\   
+      Age                    & 0.0005                       & 0.0036                  & 0.0068\\   
+                             & (0.0011)                     & (0.0018)                & (0.0048)\\   
+      Ideological Congruence & 0.2971$^{***}$               & 0.6596$^{***}$          & 1.218$^{***}$\\   
+                             & (0.0393)                     & (0.0916)                & (0.1619)\\   
+      Education              & 0.0080                       & -0.0250                 & -0.0038\\   
+                             & (0.0157)                     & (0.0272)                & (0.0588)\\   
+      Gender (Female dummy)  & 0.0077                       & -0.0696                 & -0.0476\\   
+                             & (0.0321)                     & (0.0761)                & (0.1334)\\   
+      Income                 & -0.0183                      & -0.0691                 & -0.1064\\   
+                             & (0.0216)                     & (0.0444)                & (0.0888)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Article                & Yes                          & Yes                     & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations           & 1,006                        & 1,006                   & 1,006\\  
+      R$^2$                  & 0.13481                      & 0.17948                 & 0.16428\\  
+      Within R$^2$           & 0.07046                      & 0.09590                 & 0.08667\\  
+      \midrule \midrule
+      \multicolumn{4}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
+      \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\
+   \end{tabular}
+\end{table}
+
+
