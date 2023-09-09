@@ -1,0 +1,7 @@
+"","Coef","Low_Conf","Upp_Conf","Measure","Type_News","P_Value","Standard_Error"
+"2",-0.059,-0.2831,0.165,"Ordinal (7)","Only Very Reliable News","0.605911496999615","0.208111289101872"
+"3",0.0349,-0.2057,0.2755,"Ordinal (4)","Only Very Reliable News","0.769887669038191","0.114056268571813"
+"4",0.0197,-0.2611,0.3004,"True (Dummy)","Only Very Reliable News","0.887927094625137","0.0672537563941538"
+"5",0.1156,-0.0906,0.3218,"Ordinal (7)","Some Unreliable News","0.261515875070273","0.183873016658533"
+"6",0.1984,-0.012,0.4087,"Ordinal (4)","Some Unreliable News","0.0695835970386559","0.100487109410659"
+"7",0.2296,0.0376,0.4216,"True (Dummy)","Some Unreliable News","0.0225737407587825","0.04532720138336"
