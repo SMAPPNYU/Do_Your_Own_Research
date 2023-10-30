@@ -1,6 +1,6 @@
 
 \begin{table}[htbp]
-   \caption{Results from OLS Regression Results Presented in Figure 4b (False/Misleading Articles - Study 5)}
+   \caption{Results from OLS Regression Results Presented in Figure 4b (False/Misleading Articles - Study 5). This table presents the average treatment effects for linear regression models testing the effect of SOTEN. All effects are estimated using ordinary least squares (OLS) with article fixed effects and standard errors clustered at the individual and article level.}
    \centering
    \begin{tabular}{lc}
       \tabularnewline \midrule \midrule

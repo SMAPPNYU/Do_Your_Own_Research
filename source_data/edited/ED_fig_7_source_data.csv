@@ -1,0 +1,11 @@
+Panel,DV_Measure,Study,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error
+A,True Dummy,Study 1,0.0451,-0.0755,0.1658,0.4616,0.0593
+A,True Dummy,Study 2,0.0854,-0.0104,0.1812,0.0787,0.047
+A,True Dummy,Study 3,0.0594,-0.0381,0.1569,0.2234,0.0479
+A,True Dummy,Study 4,0.0921,-0.0858,0.27,0.2816,0.0816
+A,True Dummy,Pooled,0.0862,0.0227,0.1498,0.0102,0.0322
+B,7-Point Ordinal,Study 1,0.1183,-0.382,0.6185,0.6202,0.2325
+B,7-Point Ordinal,Study 2,0.1202,-0.2751,0.5155,0.54,0.194
+B,7-Point Ordinal,Study 3,0.2072,-0.1134,0.5277,0.1973,0.1573
+B,7-Point Ordinal,Study 4,0.825,0.1341,1.5159,0.0232,0.3171
+B,7-Point Ordinal,Pooled,0.2784,0.0054,0.5513,0.0463,0.1359

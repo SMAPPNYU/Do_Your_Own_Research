@@ -1,0 +1,19 @@
+Panel,Variable_Name,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating
+A,Age,0.029,-0.0017,0.0598,0.0778,0.0014,NA,NA,NA
+A,Gender,-0.0219,-0.0701,0.0264,0.3595,0.0472,NA,NA,NA
+A,Education,-0.0012,-0.0401,0.0377,0.9539,0.0193,NA,NA,NA
+A,Income,-0.0062,-0.0445,0.0321,0.7513,0.0246,NA,NA,NA
+A,"Ideological
+Congruence",0.0249,-0.0175,0.0673,0.2539,0.0463,NA,NA,NA
+A,Digital Literacy,-0.0102,-0.0504,0.03,0.609,0.0025,NA,NA,NA
+B,NA,NA,NA,NA,NA,NA,0.82,Zero,Other
+B,NA,NA,NA,NA,NA,NA,0.43,Zero,Headline/Link
+B,NA,NA,NA,NA,NA,NA,0.18,One or more,Other
+B,NA,NA,NA,NA,NA,NA,0.57,One or more,Headline/Link
+C,Age,6e-4,-0.033,0.0341,0.9724,0.0014,NA,NA,NA
+C,Gender,0.0057,-0.0332,0.0446,0.7589,0.0375,NA,NA,NA
+C,Education,0.0141,-0.0074,0.0355,0.184,0.0099,NA,NA,NA
+C,Income,0.0024,-0.0187,0.0235,0.8121,0.0135,NA,NA,NA
+C,"Ideological
+Congruence",0.0142,-0.0145,0.0428,0.3094,0.0293,NA,NA,NA
+C,Digital Literacy,-0.0338,-0.0604,-0.0072,0.016,0.0016,NA,NA,NA

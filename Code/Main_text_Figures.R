@@ -79,6 +79,9 @@ CI_1_1 <- confint(lin_results_fit_1_1)
 #Cohen's D:
 lin_results_fit_1_1$coefficients[1]/sd(Study_1_df$Susc_FN)
 
+#Percentage change:
+lin_results_fit_1_1$coefficients[1]/mean(Study_1_df$Susc_FN[Study_1_df$Treat_Search==0])
+
 #Run OLS Model with clustered standard errors:
 lin_results_fit_1_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df)
 #Produce confidence intervals with clustered standard errors:
@@ -105,6 +108,10 @@ CI_2_1 <- confint(lin_results_fit_2_1)
 #Cohen's D:
 lin_results_fit_2_1$coefficients[1]/sd(Study_2_df$Susc_FN)
 
+#Percentage change:
+lin_results_fit_2_1$coefficients[1]/mean(Study_2_df$Susc_FN[Study_2_df$Treat_Search==0])
+
+
 #Run OLS Model with clustered standard errors:
 lin_results_fit_2_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df)
 #Produce confidence intervals with clustered standard errors:
@@ -121,6 +128,9 @@ Study_3_df$ResponseId <- as.character(Study_3_df$ResponseId)
 
 #Remove NA values:
 Study_3_df = na.omit(Study_3_df)
+
+#Number of unique respondents:
+length(unique(Study_3_df$ResponseId))
 
 #Run linear regression and produce coefficient values:
 lin_results_fit_3_1 = feols(True_Dummy ~ Treatment + Age + Dummy_Ideology + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
@@ -146,6 +156,9 @@ Study_4_df$ResponseId <- as.character(Study_4_df$ResponseId)
 
 #Remove NA values:
 Study_4_df = na.omit(Study_4_df)
+
+#Number of unique respondents:
+length(unique(Study_4_df$ResponseId))
 
 #Run OLS Model with clustered standard errors:
 lin_results_fit_4_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df)
@@ -218,20 +231,20 @@ d_matrix$x<-c(1,2,3,4)
 #Produce plot:
 ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(size=4) +
+             linetype = 2, size = 1) +
+  geom_point(size=2) +
   geom_linerange(aes(min = CI_Lower,
                      max = CI_Upper),
-                 size=1.5) +
+                 size=1) +
   ylab("\nEffect of Searching Online on Probability \nof Rating Misinformation as True") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=18),
-        axis.text.x  = element_text(size=16),
-        axis.title.y = element_text(size=18),
-        axis.text.y  = element_text(size=16),
-        plot.title = element_text(size = 22),
-        legend.title = element_text(size=18),
-        legend.text = element_text(size=18),
+  theme(axis.title.x = element_text(size=10),
+        axis.text.x  = element_text(size=8),
+        axis.title.y = element_text(size=10),
+        axis.text.y  = element_text(size=8),
+        plot.title = element_text(size = 10),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
         title =element_text(size=18, face='bold')) +
   ylim(-0.05,0.2) +
   scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
@@ -241,8 +254,34 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   coord_flip()
 
 #Save figure:
-ggsave('./Figures/All_4_Studies_Categorical.png',height=14,width=18,units='cm')
-ggsave('./Figures/All_4_Studies_Categorical.pdf',height=14,width=18,units='cm')
+#ggsave('./Figures/All_4_Studies_Categorical.png',height=9,width=9,units='cm')
+#ggsave('./Figures/All_4_Studies_Categorical.pdf',height=9,width=9,units='cm')
+#ggsave('./Figures/All_4_Studies_Categorical.eps',height=9,width=9,units='cm',device="eps")
+
+
+fig_1a <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1) +
+  geom_point(size=2) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1) +
+  ylab("\nEffect of Searching Online on Probability \nof Rating Misinformation as True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=10),
+        axis.text.x  = element_text(size=8),
+        axis.title.y = element_text(size=10),
+        axis.text.y  = element_text(size=8),
+        plot.title = element_text(size = 10),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
+        title =element_text(size=18, face='bold')) +
+  ylim(-0.05,0.2) +
+  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
+                                                      'Study 3',
+                                                      'Study 2',
+                                                      'Study 1'),limits=c(0.5,4.5)) +
+  coord_flip()
 
 colnames(d_matrix)[1] <- 'Study'
 d_matrix$x <- NULL
@@ -306,19 +345,19 @@ d_matrix$x<-c(1,2,3,4)
 ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
-  geom_point(size=4) +
+  geom_point(size=2) +
   geom_linerange(aes(min = CI_Lower,
                      max = CI_Upper),
-                 size=1.5) +
-  ylab("\nEffect of Searching Online on the \nPerceived Veracity of Misinformation (7-point scale) ") +
+                 size=1) +
+  ylab("\nEffect of Searching Online on the Perceived      \n Veracity of Misinformation (7-point scale)       ") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=18),
-        axis.text.x  = element_text(size=16),
-        axis.title.y = element_text(size=18),
-        axis.text.y  = element_text(size=16),
-        plot.title = element_text(size = 24),
-        legend.title = element_text(size=18),
-        legend.text = element_text(size=18),
+  theme(axis.title.x = element_text(size=10),
+        axis.text.x  = element_text(size=8),
+        axis.title.y = element_text(size=10),
+        axis.text.y  = element_text(size=8),
+        plot.title = element_text(size = 10),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
         title =element_text(size=18, face='bold')) +
   ylim(-0.10,0.8) +
   scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
@@ -327,9 +366,36 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
                                                       'Study 1'),limits=c(0.5,4.5)) +
   coord_flip()
 
+
+fig_1b <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1.2) +
+  geom_point(size=2) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1) +
+  ylab("\nEffect of Searching Online on the Perceived      \n Veracity of Misinformation (7-point scale)       ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=10),
+        axis.text.x  = element_text(size=8),
+        axis.title.y = element_text(size=10),
+        axis.text.y  = element_text(size=8),
+        plot.title = element_text(size = 10),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
+        title =element_text(size=18, face='bold')) +
+  ylim(-0.10,0.8) +
+  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
+                                                      'Study 3',
+                                                      'Study 2',
+                                                      'Study 1'),limits=c(0.5,4.5)) +
+  coord_flip()
+
+
 #Save figure:
-ggsave('./Figures/All_4_Studies_Ordinal.png',height=14,width=18,units='cm')
-ggsave('./Figures/All_4_Studies_Ordinal.pdf',height=14,width=18,units='cm')
+#ggsave('./Figures/All_4_Studies_Ordinal.png',height=9,width=9,units='cm')
+#ggsave('./Figures/All_4_Studies_Ordinal.pdf',height=9,width=9,units='cm')
+#ggsave('./Figures/All_4_Studies_Ordinal.eps',height=9,width=9,units='cm',device="eps")
 
 colnames(d_matrix)[1] <- 'Study'
 d_matrix$x <- NULL
@@ -353,8 +419,20 @@ Study_5_df <- merge(Study_5_df,FCer_details,by='Article_day')
 #Remove NA values:
 Study_5_df = na.omit(Study_5_df)
 
-nrow(Study_5_df)
+#Number of unique respondents in study who evaluated FM articles:
+length(unique(Study_5_df$ResponseId))
 
+#Number of unique respondents in study who evaluated FM articles for control and treatment group:
+treat_5_study <- Study_5_df %>% filter(Treatment == 1)
+control_5_study <- Study_5_df %>% filter(Treatment == 0)
+#Treatment group:
+length(unique(treat_5_study$ResponseId))
+#Control group:
+length(unique(control_5_study$ResponseId))
+
+
+  
+  
 #Run OLS Model with clustered standard errors:
 lin_results_fit_5_1 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_5_df)
 #Produce confidence intervals with clustered standard errors:
@@ -416,28 +494,55 @@ d_matrix$x<-c(0.3,0.2,0.1)
 #Produce plot:
 ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(size=4) +
+             linetype = 2, size = 1) +
+  geom_point(size=2) +
   geom_linerange(aes(min = CI_Lower,
                      max = CI_Upper),
-                 size=1.5) +
+                 size=1) +
   ylab("\nEffect of Searching for Information on \nPerceived Veracity of Misinformation \n(1 unit is 1 standard deviation) ") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=18),
-        axis.text.x  = element_text(size=16),
-        axis.title.y = element_text(size=18),
-        axis.text.y  = element_text(size=16),
-        plot.title = element_text(size = 20),
-        legend.title = element_text(size=18),
-        legend.text = element_text(size=18),
+  theme(axis.title.x = element_text(size=10),
+        axis.text.x  = element_text(size=8),
+        axis.title.y = element_text(size=10),
+        axis.text.y  = element_text(size=8),
+        plot.title = element_text(size = 10),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
         title =element_text(size=18, face='bold')) +
   ylim(-0.13,0.7) +
   scale_x_continuous("Perceived Veracity Scale \n",breaks=c(0.3,0.2,0.1),labels=Coef_names,limits=c(0.0,0.4)) +
   coord_flip()
 
 #Save plot:
-ggsave('./Figures/Study_5_1.png',height=16,width=18,units='cm')
-ggsave('./Figures/Study_5_1.pdf',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_1.png',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_1.jpg',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_1.pdf',height=16,width=18,units='cm')
+
+
+fig_2b <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 1) +
+  geom_point(size=2) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=1) +
+  ylab("\nEffect of Searching for Information on         \nPerceived Veracity of Misinformation        \n(1 unit is 1 standard deviation)        ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 8),
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=8),
+        title =element_text(size=18, face='bold')) +
+  ylim(-0.13,0.7) +
+  scale_x_continuous("Perceived Veracity Scale \n",breaks=c(0.3,0.2,0.1),labels=Coef_names,limits=c(0.0,0.4)) +
+  coord_flip()
+
+
+
+
 
 colnames(d_matrix)[1] <- 'Measure'
 d_matrix$x <- NULL
@@ -510,14 +615,62 @@ ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) +
   ylim(0,1)
 
 
+
+
 #Save figure:
-ggsave('./Figures/Study_5_Bar_Graph_Google_Search.png',height=16,width=18,units='cm')
-ggsave('./Figures/Study_5_Bar_Graph_Google_Search.pdf',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_Bar_Graph_Google_Search.png',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_Bar_Graph_Google_Search.pdf',height=16,width=18,units='cm')
+
+
+
+
+fig_2a <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_fill_manual(values=cbbPalette_1, name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
+  ylab('Proportion of Individuals Whose       \n Search Engine Results Return      \n Unreliable News by Article Type         \n') +
+  xlab('\nFact-Checker Rating of Article Individual\n Queries Search Engines About') +
+  theme_bw() + 
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        title =element_text(size=6, face='bold'),
+        legend.text = element_text(size=6)) + guides(fill=guide_legend(
+          keywidth=0.2,
+          keyheight=0.2,
+          default.unit="inch")) +
+  geom_text(aes(label=Proportion), position=position_dodge(width=0.9), vjust=-0.25,size=2) +
+  ylim(0,1)
+
+
+
+
 
 colnames(Matrix_Dist)[2] <- 'Number_low_quality_links'
 
 write.csv(Matrix_Dist,'./source_data/fig_2a_source_data.csv')
 
+
+
+
+#Comparative Statistic:
+
+#Create true article dummy variable:
+Search_Results_T$True_Article = 1
+Search_Results_FM$True_Article = 0
+
+#Combine dataframes:
+df_2a <- rbind(Search_Results_T,Search_Results_FM)
+
+#Run simple linear regression:
+fit_lm_2a <- lm(Unrel_contain ~ True_Article,data=df_2a)
+
+#Print output:
+summary(fit_lm_2a)
 
 ################################################################################################################
 
@@ -593,6 +746,16 @@ CI_2_2 = confint(fit_2_2,se='twoway')
 fit_2_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_1)
 CI_2_3 = confint(fit_2_3,se='twoway')
 
+#Cohen's D:
+fit_2_3$coefficients[1]/sd(Control_Data$True_Dummy)
+
+#Confirm the null hypothesis: 
+library(BayesFactor)
+
+bf = ttestBF(formula = True_Dummy ~ Treatment, data = Study_5_subset_1)
+
+bf
+
 #Create empty matrix:
 Fig_2c_Mat <- matrix(ncol=7)
 
@@ -639,6 +802,9 @@ CI_2_2 = confint(fit_2_2,se='twoway')
 fit_2_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Study_5_subset_2)
 CI_2_3 = confint(fit_2_3,se='twoway')
 
+#Cohen's D:
+fit_2_3$coefficients[1]/sd(Control_Data$True_Dummy)
+
 
 #Merge data:
 New_matr <- matrix(c(round(fit_2_1$coefficients[1]/sd(Study_5_subset_2$Seven_Ordinal),4),round(CI_2_1[1,1]/sd(Study_5_subset_2$Seven_Ordinal),4),round(CI_2_1[1,2]/sd(Study_5_subset_2$Seven_Ordinal),4),'Ordinal (7)','Some Unreliable News',fit_2_1$coeftable[1,4],fit_2_1$coeftable[1,2],
@@ -676,7 +842,7 @@ ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
                      color = Measure),
                  size=1.5) +
   scale_color_manual(values=cbbPalette_1, name = "Measure") +
-  ylab("\n Effect of Searching for Information Quality on Belief in Misinformation\n Dependent on Quality of Information Returned from Google Search Results \n(1 unit is 1 standard deviation of that measure) ") +
+  ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
   theme_classic() +
   theme(axis.title.x = element_text(size=12),
         axis.text.x  = element_text(size=12),
@@ -692,8 +858,35 @@ ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
   coord_flip()
 
 #Save Figure:
-ggsave('./Figures/Coefs_CIs.png',height=16,width=18,units='cm')
-ggsave('./Figures/Coefs_CIs.pdf',height=16,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs.png',height=16,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs.pdf',height=16,width=18,units='cm')
+
+
+fig_2c <- ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.75) +
+  geom_point(aes(color = Measure, shape=Measure),size=1.5) +
+  geom_linerange(aes(min = Low_Conf, 
+                     max = Upp_Conf, 
+                     color = Measure),
+                 size=0.75) +
+  scale_color_manual(values=cbbPalette_1, name = "Measure") +
+  ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 8),
+        legend.title = element_text(size=8),
+        legend.text = element_text(size=8),
+        title =element_text(size=8, face='bold')) +
+  ylim(-0.55,0.55) +
+  scale_x_continuous("Type of News Returned by \n Search Engine \n",breaks=c(1.5,0.9),labels=c('At Least 10%\nof News URLs\nAre Unreliable',
+                                                                                                   'Only Very Reliable\nNews Sources'),limits=c(0.5,2.0)) +
+  coord_flip()
+
+
 
 
 Fig_2c_Mat$x <- NULL
@@ -903,7 +1096,7 @@ ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
                      color = Measure),
                  size=1.5) +
   scale_color_manual(values=cbbPalette_1, name = "Measure") +
-  ylab("\n Effect of Searching for Information Quality on Belief in Misinformation\n Dependent on Quality of Information Returned from Google Search Results \n(1 unit is 1 standard deviation of that measure) ") +
+  ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
   theme_classic() +
   theme(axis.title.x = element_text(size=12),
         axis.text.x  = element_text(size=12),
@@ -921,12 +1114,70 @@ ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
   coord_flip()
 
 #Save Figure:
-ggsave('./Figures/Coefs_CIs_2.png',height=16,width=18,units='cm')
-ggsave('./Figures/Coefs_CIs_2.pdf',height=16,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs_2.png',height=16,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs_2.pdf',height=16,width=18,units='cm')
+
+fig_2d <- ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.75) +
+  geom_point(aes(color = Measure, shape=Measure),size=1.5) +
+  geom_linerange(aes(min = Low_Conf, 
+                     max = Upp_Conf, 
+                     color = Measure),
+                 size=0.75) +
+  scale_color_manual(values=cbbPalette_1, name = "Measure") +
+  ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 8),
+        legend.title = element_text(size=8),
+        legend.text = element_text(size=8),
+        title =element_text(size=8, face='bold')) +
+  ylim(-0.5,0.7) +
+  scale_x_continuous("Quartile of News Quality \n Returned by Search Engine \n",breaks=c(2.7,2.1,1.5,0.9),labels=c('75-100%',
+                                                                                                                       '50-75%',
+                                                                                                                       '25-50%',
+                                                                                                                       '0-25%'),limits=c(0.5,3.0)) +
+  coord_flip()
+
+
 
 Fig_2d_Mat$x <- NULL
 
 write.csv(Fig_2d_Mat,'./source_data/fig_2d_source_data.csv')
+
+
+
+
+
+#Confirm the null hypothesis: 
+library(BayesFactor)
+
+bf = ttestBF(formula = True_Dummy ~ Treatment, data = highest_quartile_all_data)
+
+bf
+
+
+
+top_half <- rbind(highest_quartile_T_data,Third_lowest_quartile_T_data,Control_Data)
+
+#Run OLS Model with clustered standard errors:
+fit_2_3 = feols(True_Dummy ~ Treatment + Age + Ideo_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=top_half)
+
+
+#Confirm the null hypothesis: 
+library(BayesFactor)
+
+bf = ttestBF(formula = True_Dummy ~ Treatment, data = top_half)
+
+bf
+
+
+
+
 
 ################################################################################################################
 
@@ -944,6 +1195,13 @@ nrow(T_Data)
 
 Prop_Dummy_results = feols(Unrel_contain ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence +Dig_Lit_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=T_Data)
 CI_Prop_Dummy = confint(Prop_Dummy_results,se='twoway')
+
+
+#Cohen's D (Dig. Lit.): 
+(Prop_Dummy_results$coefficients[6]*sd(T_Data$Dig_Lit_Score))/sd(Study_4_df$Susc_FN)
+
+#Cohen's D (Ideological Congruence): 
+(Prop_Dummy_results$coefficients[5]*sd(T_Data$Ideo_Congruence))/sd(Study_4_df$Susc_FN)
 
 #Create dataframe with coefficients and confidence intervals:
 Coefficients <- c(round(Prop_Dummy_results$coefficients[1]*sd(T_Data$Age),4),
@@ -1010,28 +1268,50 @@ d_matrix$x<-c(0.1,0.2,0.3,0.4,0.5,0.6)
 #Produce plot:
 ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(size=4) +
+             linetype = 2, size = 1) +
+  geom_point(size=2) +
   geom_linerange(aes(min = CI_Lower,
                      max = CI_Upper),
-                 size=1.5) +
-  ylab("\n The Effect of a One Standard Deviation Increase of Ind. Variable\n on Probability of Exposure to Unreliable News Site") +
+                 size=1) +
+  ylab("\n The Effect of a 1 SD Increase of Indep. Var.\n on Probability of Exposure to Unreliable News") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=12),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 8),
+        legend.title = element_text(size=8),
+        legend.text = element_text(size=8),
+        title =element_text(size=8, face='bold')) +
   ylim(-0.1,0.15) +
   scale_x_continuous("Demographic Covariates \n",breaks=c(0.1,0.2,0.3,0.4,0.5,0.6),labels=Coef_names,limits=c(0.0,0.7)) +
   coord_flip()
 
 #Save figure:
-ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy.png',height=12,width=18,units='cm')
-ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy.pdf',height=12,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy.png',height=12,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy.pdf',height=12,width=18,units='cm')
+
+fig_3a <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.5) +
+  geom_point(size=1) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=0.5) +
+  ylab("\n The Effect of a 1 SD Increase of \nIndep. Var on Probability of Exposure\n to Unreliable News") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=6),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=6),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 6),
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        title =element_text(size=6, face='bold')) +
+  ylim(-0.1,0.15) +
+  scale_x_continuous("Demographic Covariates \n",breaks=c(0.1,0.2,0.3,0.4,0.5,0.6),labels=Coef_names,limits=c(0.0,0.7)) +
+  coord_flip()
+
 
 d_matrix$x <- NULL
 
@@ -1087,12 +1367,12 @@ Matrix_Dist$Proportion <- round(Matrix_Dist$Proportion,2)
 ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
   geom_bar(position="dodge", stat="identity") +
   scale_fill_manual(values=cbbPalette_1, name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
-  ylab('Proportion of Search Queries That Return Search Engine Results That    \n Return Unreliable News by Article Type         \n') +
+  ylab('Proportion of Search Queries That Return Results \n That Return Unreliable News by Article Type     \n') +
   xlab('\nType of Search Query Used') +
   theme_classic() + 
-  theme(axis.title.x = element_text(size=12),
+  theme(axis.title.x = element_text(size=16),
         axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
+        axis.title.y = element_text(size=16),
         axis.text.y  = element_text(size=12),
         plot.title = element_text(size = 12),
         legend.title = element_text(size=12),
@@ -1106,10 +1386,48 @@ ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) +
   ylim(0,1)
 
 #Save figure:
-ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL.png',height=16,width=18,units='cm')
-ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL.pdf',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL.png',height=16,width=18,units='cm')
+#ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL.pdf',height=16,width=18,units='cm')
+
+
+fig_3b <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_fill_manual(values=cbbPalette_1, name = "Number of \nNews Links \nReturned by \nSearch Engines \nFrom Unreliable \nSources") +
+  ylab('Proportion of Search Queries That Return Results \n That Return Unreliable News by Article Type     \n') +
+  xlab('\nType of Search Query Used') +
+  theme_classic() + 
+  theme(axis.title.x = element_text(size=6),
+        axis.text.x  = element_text(size=5),
+        axis.title.y = element_text(size=6),
+        axis.text.y  = element_text(size=5),
+        plot.title = element_text(size = 6),
+        legend.title = element_text(size=5),
+        legend.text = element_text(size=5),
+        title =element_text(size=6, face='bold')) +
+  guides(fill=guide_legend(
+    keywidth=0.1,
+    keyheight=0.1,
+    default.unit="inch")) +
+  geom_text(aes(label=Proportion), position=position_dodge(width=0.9), vjust=-0.25,size=2) +
+  ylim(0,1)
+
+
 
 write.csv(Matrix_Dist,'./source_data/fig_3b_source_data.csv')
+
+
+
+
+
+#Comparative Statistic:
+
+#Run simple linear regression:
+fit_lm_3b <- lm(Unrel_contain ~ Headline_Link,data=Headline_coding)
+
+#Print output:
+summary(fit_lm_3b)
+
+
 
 
 ################################################################################################################
@@ -1122,9 +1440,10 @@ write.csv(Matrix_Dist,'./source_data/fig_3b_source_data.csv')
 #Pull-in search data data:
 Headline_coding <- read.csv('./Data/Headline_Coding_4.csv')
 
-Headline_coding <- na.omit(Headline_coding)
-
 nrow(Headline_coding)
+
+#Remove searches without a news quality score:
+Headline_coding <- na.omit(Headline_coding)
 
 #Select variables needed:
 Headline_coding <- Headline_coding %>% select(ResponseId,Article_day,Headline_Link,Age,Gender,Education_Score,Income_Score,Ideo_Congruence,Dig_Lit_Score)
@@ -1132,6 +1451,9 @@ Headline_coding <- Headline_coding %>% select(ResponseId,Article_day,Headline_Li
 #Run OLS Model with clustered standard errors:
 Headline_results = feols(Headline_Link ~ Age + Gender + Education_Score + Income_Score + Ideo_Congruence +Dig_Lit_Score | Article_day, cluster = ~Article_day+ResponseId, se="twoway", data=Headline_coding)
 CI_Headline = confint(Headline_results)
+
+#Cohen's D (digital literacy):
+Headline_results$coefficients[6]*sd(Headline_coding$Dig_Lit_Score)/sd(Headline_coding$Headline_Link)
 
 #List of coefficients
 Coefficients <- c(round(Headline_results$coefficients[1]*sd(Headline_coding$Age),4),
@@ -1202,11 +1524,11 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_linerange(aes(min = CI_Lower,
                      max = CI_Upper),
                  size=1.5) +
-  ylab("\n The Effect of a One Standard Deviation Increase of Ind. Variable\n on Probability of using Headline or Link as Search Term") +
+  ylab("\nThe Effect of a 1 SD Increase of Indep. Var.     \n on Probability of Using Headline/Link as Search Term        ") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=12),
+  theme(axis.title.x = element_text(size=16),
         axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
+        axis.title.y = element_text(size=16),
         axis.text.y  = element_text(size=12),
         plot.title = element_text(size = 12),
         legend.title = element_text(size=12),
@@ -1217,8 +1539,30 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   coord_flip()
 
 #Save figure:
-ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link.png',height=16,width=18,units='cm')
-ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link.pdf',height=16,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link.png',height=16,width=18,units='cm')
+#ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link.pdf',height=16,width=18,units='cm')
+
+
+fig_3c <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.5) +
+  geom_point(size=1) +
+  geom_linerange(aes(min = CI_Lower,
+                     max = CI_Upper),
+                 size=0.5) +
+  ylab("\n The Effect of a 1 SD Increase of \nIndep. Var on Probability of \nUsing Headline/Link as Search Term ") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=6),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=6),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 6),
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        title =element_text(size=6, face='bold')) +
+  ylim(-0.1,0.1) +
+  scale_x_continuous("Demographic Covariates \n",breaks=c(0.1,0.2,0.3,0.4,0.5,0.6),labels=Coef_names,limits=c(0.0,0.7)) +
+  coord_flip()
 
 
 d_matrix$x <- NULL
@@ -1365,6 +1709,15 @@ nrow(All_T_Study_4)
 
 
 
+#Confirm the null hypothesis: 
+library(BayesFactor)
+
+bf = ttestBF(formula = True_Dummy ~ Treat_Search, data = All_T_Study_4)
+
+bf
+
+
+
 #Run OLS Model with clustered standard errors:
 lin_results_fit_4_1_1 = feols(True_Dummy ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = All_T_Study_4)
 #Produce confidence intervals with clustered standard errors:
@@ -1433,15 +1786,15 @@ CI_5_3_1 <- confint(lin_results_fit_5_3_1,se='twoway')
 
 #Create list for figure of Study numbers
 Study <- c('True',
-           'False/Misleading',
+           'False/\nMisleading',
            'True',
-           'False/Misleading',
+           'False/\nMisleading',
            'True',  
-           'False/Misleading',
+           'False/\nMisleading',
            'True',  
-           'False/Misleading',
+           'False/\nMisleading',
            'True',  
-           'False/Misleading')
+           'False/\nMisleading')
 
 #List of coefficient names in matrix:
 Coef_names <- c('Study 1',
@@ -1515,7 +1868,7 @@ Standard_Error <- c(round(lin_results_fit_1_1_1$coeftable[1,2],4),
                     round(lin_results_fit_5_3_1$coeftable[1,2],4))
 
 #Create data matrix with data for figure:
-d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
+d_matrix <- cbind(Study,Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
 #Remove row names:
 rownames(d_matrix) <- c()
 
@@ -1543,8 +1896,10 @@ d_matrix <- d_matrix %>% arrange(Coef_names)
 #Create order in figure:
 d_matrix$x <- c(5.1,4.9,4.1,3.9,3.1,2.9,2.1,1.9,1.1,0.9)
 
+d_matrix_1 <- d_matrix
+
 #Produce figure:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+ggplot(data = d_matrix_1, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
   geom_point(aes(color = Study, shape=Study),size=3.5) +
@@ -1554,11 +1909,11 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
                  size=2) +
   scale_color_manual(values=cbbPalette_3, name = "Type of News") +
   scale_shape_manual(values=c(15,17),"Type of News") +
-  ylab("\n The Effect of Searching Online\n on Likelihood of Rating News as True") +
+  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=12),
+  theme(axis.title.x = element_text(size=16),
         axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
+        axis.title.y = element_text(size=16),
         axis.text.y  = element_text(size=12),
         plot.title = element_text(size = 12),
         legend.title = element_text(size=12),
@@ -1575,6 +1930,42 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
 
 ggsave('./Figures/T_FM_Fig_1A_True_Dummy.png',height=16,width=18,units='cm')
 ggsave('./Figures/T_FM_Fig_1A_True_Dummy.pdf',height=16,width=18,units='cm')
+
+
+fig_4a <- ggplot(data = d_matrix_1, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.75) +
+  geom_point(aes(color = Study, shape=Study),size=1.5) +
+  geom_linerange(aes(min = CI_Lower, 
+                     max = CI_Upper, 
+                     color = Study),
+                 size=0.75) +
+  scale_color_manual(values=cbbPalette_2, name = "Type of News") +
+  scale_shape_manual(values=c(15,16,17),"Type of News") +
+  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 6),
+        legend.title = element_text(size=4),
+        legend.text = element_text(size=4),
+        title =element_text(size=6, face='bold')) +
+  ylim(-0.1,0.2) +
+  scale_x_continuous("Study Number\n",breaks=c(1,2,3,4,5),labels=rev(c('Study 1',
+                                                                       'Study 2',
+                                                                       'Study 3',
+                                                                       'Study 4',
+                                                                       'Study 5')),limits=c(0.2,5.8)) +
+  coord_flip()
+
+
+
+
+
+
+
 
 
 d_matrix$x <- NULL
@@ -1680,6 +2071,16 @@ lin_results_fit_3_2_1 = feols(True_Dummy ~ Treatment + Age + Dummy_Congruence + 
 #Produce confidence intervals using clustered standard errors:
 CI_3_2_1 <- confint(lin_results_fit_3_2_1,se='twoway')
 
+
+#Confirm the null hypothesis: 
+library(BayesFactor)
+
+bf = ttestBF(formula = True_Dummy ~ Treat_Search, data = T_Mainstream_Data_Study_3)
+
+bf
+
+
+
 #Run linear regression and produce coefficient values:
 lin_results_fit_3_3_1 = feols(Susc_FN ~ Treatment + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
 #Produce confidence intervals using clustered standard errors:
@@ -1710,10 +2111,21 @@ lin_results_fit_4_1_1 = feols(True_Dummy ~ Treat_Search + Age + Dummy_Congruence
 #Produce confidence intervals with clustered standard errors:
 CI_4_1_1 <- confint(lin_results_fit_4_1_1,se='twoway')
 
+
 #Run OLS Model with clustered standard errors:
 lin_results_fit_4_2_1 = feols(True_Dummy ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = T_Mainstream_Data_Study_4)
 #Produce confidence intervals with clustered standard errors:
 CI_4_2_1 <- confint(lin_results_fit_4_2_1,se='twoway')
+
+
+
+#Confirm the null hypothesis: 
+library(BayesFactor)
+
+bf = ttestBF(formula = True_Dummy ~ Treat_Search, data = T_Mainstream_Data_Study_4)
+
+bf
+
 
 #Run OLS Model with clustered standard errors:
 lin_results_fit_4_3_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_False_M)
@@ -1757,21 +2169,21 @@ CI_5_3_1 <- confint(lin_results_fit_5_3_1,se='twoway')
 
 
 #Create list for figure of Study numbers
-Study <- c('True - Low Quality',
-           'True - Mainstream',  
-           'False/Misleading',
-           'True - Low Quality',
-           'True - Mainstream',  
-           'False/Misleading',
-           'True - Low Quality',
-           'True - Mainstream',  
-           'False/Misleading',
-           'True - Low Quality',
-           'True - Mainstream',  
-           'False/Misleading',
-           'True - Low Quality',
-           'True - Mainstream',  
-           'False/Misleading')
+Study <- c('True\nLow Quality',
+           'True\nMainstream',  
+           'False/\nMisleading',
+           'True\nLow Quality',
+           'True\nMainstream',  
+           'False/\nMisleading',
+           'True\nLow Quality',
+           'True\nMainstream',  
+           'False/\nMisleading',
+           'True\nLow Quality',
+           'True\nMainstream',  
+           'False/\nMisleading',
+           'True\nLow Quality',
+           'True\nMainstream',  
+           'False/\nMisleading')
 
 #List of coefficient names in matrix:
 Coef_names <- c('Study 1',
@@ -1876,7 +2288,7 @@ Standard_Error <- c(round(lin_results_fit_1_1_1$coeftable[1,2],4),
                     round(lin_results_fit_5_3_1$coeftable[1,2],4))
 
 #Create data matrix with data for figure:
-d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
+d_matrix <- cbind(Study,Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
 #Remove row names:
 rownames(d_matrix) <- c()
 
@@ -1895,7 +2307,8 @@ d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
 d_matrix$Coef_names <- factor(d_matrix$Coef_names,levels=c('Study 1',
                                                            'Study 2',
                                                            'Study 3',
-                                                           'Study 4'))
+                                                           'Study 4',
+                                                           'Study 5'))
 
 #Arrange dataframe by coefficient names
 d_matrix <- d_matrix %>% arrange(Coef_names)
@@ -1914,11 +2327,11 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
                  size=2) +
   scale_color_manual(values=cbbPalette_2, name = "Type of News") +
   scale_shape_manual(values=c(15,16,17),"Type of News") +
-  ylab("\n The Effect of Searching Online\n on Likelihood of Rating News as True") +
+  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=12),
+  theme(axis.title.x = element_text(size=16),
         axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
+        axis.title.y = element_text(size=16),
         axis.text.y  = element_text(size=12),
         plot.title = element_text(size = 12),
         legend.title = element_text(size=12),
@@ -1935,6 +2348,43 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
 
 ggsave('./Figures/Fig_1A_True_Dummy.png',height=16,width=18,units='cm')
 ggsave('./Figures/Fig_1A_True_Dummy.pdf',height=16,width=18,units='cm')
+
+d_matrix_2 <- d_matrix
+
+fig_4b <- ggplot(data = d_matrix_2, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.75) +
+  geom_point(aes(color = Study, shape=Study),size=1.5) +
+  geom_linerange(aes(min = CI_Lower, 
+                     max = CI_Upper, 
+                     color = Study),
+                 size=0.75) +
+  scale_color_manual(values=cbbPalette_2, name = "Type of News") +
+  scale_shape_manual(values=c(15,16,17),"Type of News") +
+  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 6),
+        legend.title = element_text(size=4),
+        legend.text = element_text(size=4),
+        title =element_text(size=6, face='bold')) +
+  ylim(-0.1,0.3) +
+  scale_x_continuous("Study Number\n",breaks=c(1,2,3,4,5),labels=rev(c('Study 1',
+                                                                       'Study 2',
+                                                                       'Study 3',
+                                                                       'Study 4',
+                                                                       'Study 5')),limits=c(0.2,5.8)) +
+  coord_flip()
+
+
+
+
+
+
+
 
 d_matrix$x <- NULL
 
@@ -2089,12 +2539,12 @@ CI_btwn_FM_1 <- confint(btwn_FM_results_1,se='twoway')
 
 
 #Create list for figure of Study numbers
-Study <- c('True - Low Quality',
-           'True - Mainstream',
-           'False/Misleading',
-           'True - Low Quality',
-           'True - Mainstream',
-           'False/Misleading')
+Study <- c('True\nLow Quality',
+           'True\nMainstream',
+           'False/\nMisleading',
+           'True\nLow Quality',
+           'True\nMainstream',
+           'False/\nMisleading')
 
 #List of coefficient names in matrix:
 Coef_names <- c('Between',
@@ -2145,7 +2595,7 @@ Standard_Error <- c(round(btwn_T_LQ_results_1$coeftable[1,2],4),
                     round(wthn_FM_results_1$coeftable[1,2],4))
 
 #Create data matrix with data for figure:
-d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
+d_matrix <- cbind(Study,Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
 #Remove row names:
 rownames(d_matrix) <- c()
 
@@ -2183,11 +2633,11 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
                  size=2) +
   scale_color_manual(values=cbbPalette_2, name = "Type of News") +
   scale_shape_manual(values=c(15,16,17),"Type of News") +
-  ylab("\n The Effect of Searching Online\n on Likelihood of Rating News as True") +
+  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
   theme_classic() +
-  theme(axis.title.x = element_text(size=12),
+  theme(axis.title.x = element_text(size=16),
         axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
+        axis.title.y = element_text(size=16),
         axis.text.y  = element_text(size=12),
         plot.title = element_text(size = 12),
         legend.title = element_text(size=12),
@@ -2202,26 +2652,61 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
 ggsave('./Figures/Types_Fig_1A_True_Dummy.png',height=16,width=18,units='cm')
 ggsave('./Figures/Types_Fig_1A_True_Dummy.pdf',height=16,width=18,units='cm')
 
+d_matrix_3 <- d_matrix
+
 d_matrix$x <- NULL
 write.csv(d_matrix,'./source_data/fig_4c_source_data.csv')
 
 
 
+fig_4c <- ggplot(data = d_matrix_3, aes(x = x, y = Coefficients)) +
+  geom_hline(aes(yintercept = 0), color = "gray",
+             linetype = 2, size = 0.75) +
+  geom_point(aes(color = Study, shape=Study),size=1.5) +
+  geom_linerange(aes(min = CI_Lower, 
+                     max = CI_Upper, 
+                     color = Study),
+                 size=0.75) +
+  scale_color_manual(values=cbbPalette_2, name = "Type of News") +
+  scale_shape_manual(values=c(15,16,17),"Type of News") +
+  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size=8),
+        axis.text.x  = element_text(size=6),
+        axis.title.y = element_text(size=8),
+        axis.text.y  = element_text(size=6),
+        plot.title = element_text(size = 6),
+        legend.title = element_text(size=4),
+        legend.text = element_text(size=4),
+        title =element_text(size=6, face='bold')) +
+  ylim(-0.1,0.25) +
+  scale_x_continuous("Study Type\n",breaks=c(1,2),labels=rev(c('Between',
+                                                               'Within')),limits=c(0,3)) +
+  coord_flip()
 
 
 
 
 
 
+wthn_T_M_studies$Mainstream <- 1
+wthn_T_LQ_studies$Mainstream <- 0
 
 
+wthn_T_stud <- rbind(wthn_T_M_studies,wthn_T_LQ_studies)
 
 
+wthn_T_stud_results_1 = feols(True_Dummy ~ Treat_Search*Mainstream + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score, data = wthn_T_stud)
 
 
+btwn_T_M_studies$Mainstream <- 1
+btwn_T_LQ_studies$Mainstream <- 0
 
 
+btwn_T_stud <- rbind(btwn_T_M_studies,btwn_T_LQ_studies)
 
+
+btwn_T_stud_results_1 = feols(True_Dummy ~ Treat_Search*Mainstream + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score, data = btwn_T_stud)
 
 
 
@@ -3490,6 +3975,278 @@ mean(T_Mainstream_Data_Study_5$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo_main.txt")
+
+
+
+########################### Source Data ##############################
+
+library(tidyverse)
+library(readr)
+
+######################################################################
+
+############################ Figure 1 ################################
+
+######################################################################
+
+#Read in data:
+fig_1a_sd <- read_csv("./source_data/fig_1a_source_data.csv")
+fig_1b_sd <- read_csv("./source_data/fig_1b_source_data.csv")
+
+#Rename first column:
+colnames(fig_1a_sd)[1] <- 'X'
+colnames(fig_1b_sd)[1] <- 'X'
+
+#Remove unnecessary column:
+fig_1a_sd$X <- NULL
+fig_1b_sd$X <- NULL
+
+#Remove unnecessary column:
+fig_1a_sd$Panel <- 'A'
+fig_1b_sd$Panel <- 'B'
+
+colnames(fig_1a_sd)
+colnames(fig_1b_sd)
+
+fig_1a_sd <- fig_1a_sd %>% select(Panel,Study,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
+fig_1b_sd <- fig_1b_sd %>% select(Panel,Study,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
+
+fig_1_sd <- rbind(fig_1a_sd,fig_1b_sd )
+
+write_csv(fig_1_sd,'./source_data/fig_1_source_data.csv')
+
+
+######################################################################
+
+############################ Figure 2 ################################
+
+######################################################################
+
+#Read in data:
+fig_2a_sd <- read_csv("./source_data/fig_2a_source_data.csv")
+fig_2b_sd <- read_csv("./source_data/fig_2b_source_data.csv")
+fig_2c_sd <- read_csv("./source_data/fig_2c_source_data.csv")
+fig_2d_sd <- read_csv("./source_data/fig_2d_source_data.csv")
+
+#Rename first column:
+colnames(fig_2a_sd)[1] <- 'X'
+colnames(fig_2b_sd)[1] <- 'X'
+colnames(fig_2c_sd)[1] <- 'X'
+colnames(fig_2d_sd)[1] <- 'X'
+
+#Remove unnecessary column:
+fig_2a_sd$X <- NULL
+fig_2b_sd$X <- NULL
+fig_2c_sd$X <- NULL
+fig_2d_sd$X <- NULL
+
+#Remove unnecessary column:
+fig_2a_sd$Panel <- 'A'
+fig_2b_sd$Panel <- 'B'
+fig_2c_sd$Panel <- 'C'
+fig_2d_sd$Panel <- 'D'
+
+#Add columns that panel A have
+fig_2b_sd$Proportion <- NA
+fig_2b_sd$Number_low_quality_links <- NA
+fig_2b_sd$Article_Rating <- NA
+
+fig_2c_sd$Proportion <- NA
+fig_2c_sd$Number_low_quality_links <- NA
+fig_2c_sd$Article_Rating <- NA
+
+fig_2d_sd$Proportion <- NA
+fig_2d_sd$Number_low_quality_links <- NA
+fig_2d_sd$Article_Rating <- NA
+
+
+#Change column names from panels c and d to match panel b:
+
+colnames(fig_2b_sd) <- c('DV_Measure','Effect','CI_Upper','CI_Lower','P_Value','Standard_Error','Panel','Proportion','Number_low_quality_links','Article_Rating')
+colnames(fig_2c_sd) <- c('Effect','CI_Lower','CI_Upper','DV_Measure','Type_News','P_Value','Standard_Error','Panel','Proportion','Number_low_quality_links','Article_Rating')
+colnames(fig_2d_sd) <- c('Effect','CI_Lower','CI_Upper','DV_Measure','Type_News','P_Value','Standard_Error','Panel','Proportion','Number_low_quality_links','Article_Rating')
+
+#Add columns that panel C and D have:
+fig_2b_sd$Type_News <- NA
+
+#Add columns that panel B, C and D have:
+fig_2a_sd$DV_Measure <- NA
+fig_2a_sd$Effect <- NA
+fig_2a_sd$CI_Upper <- NA
+fig_2a_sd$CI_Lower <- NA
+fig_2a_sd$P_Value <- NA
+fig_2a_sd$Standard_Error <- NA
+fig_2a_sd$DV_Measure <- NA
+fig_2a_sd$Type_News <- NA
+
+#Order columns: 
+
+fig_2a_sd <- fig_2a_sd %>% select(Panel,DV_Measure,Type_News,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+fig_2b_sd <- fig_2b_sd %>% select(Panel,DV_Measure,Type_News,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+fig_2c_sd <- fig_2c_sd %>% select(Panel,DV_Measure,Type_News,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+fig_2d_sd <- fig_2d_sd %>% select(Panel,DV_Measure,Type_News,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+
+fig_2_sd <- rbind(fig_2a_sd,fig_2b_sd)
+fig_2_sd <- rbind(fig_2_sd,fig_2c_sd)
+fig_2_sd <- rbind(fig_2_sd,fig_2d_sd)
+
+write_csv(fig_2_sd,'./source_data/fig_2_source_data.csv')
+
+######################################################################
+
+############################ Figure 3 ################################
+
+######################################################################
+
+#Read in data:
+fig_3a_sd <- read_csv("./source_data/fig_3a_source_data.csv")
+fig_3b_sd <- read_csv("./source_data/fig_3b_source_data.csv")
+fig_3c_sd <- read_csv("./source_data/fig_3c_source_data.csv")
+
+#Rename first column:
+colnames(fig_3a_sd)[1] <- 'X'
+colnames(fig_3b_sd)[1] <- 'X'
+colnames(fig_3c_sd)[1] <- 'X'
+
+#Remove unnecessary column:
+fig_3a_sd$X <- NULL
+fig_3b_sd$X <- NULL
+fig_3c_sd$X <- NULL
+
+#Remove unnecessary column:
+fig_3a_sd$Panel <- 'A'
+fig_3b_sd$Panel <- 'B'
+fig_3c_sd$Panel <- 'C'
+
+#Change columns names
+colnames(fig_3a_sd) <- c('Variable_Name','Effect','CI_Upper','CI_Lower','P_Value','Standard_Error','Panel')
+colnames(fig_3b_sd) <- c('Proportion','Number_low_quality_links','Article_Rating','Panel')
+colnames(fig_3c_sd) <- c('Variable_Name','Effect','CI_Upper','CI_Lower','P_Value','Standard_Error','Panel')
+
+
+#Add columns that panel B have:
+fig_3a_sd$Proportion <- NA
+fig_3a_sd$Number_low_quality_links <- NA
+fig_3a_sd$Article_Rating <- NA
+
+fig_3c_sd$Proportion <- NA
+fig_3c_sd$Number_low_quality_links <- NA
+fig_3c_sd$Article_Rating <- NA
+
+#Add columns that panels A and C have:
+fig_3b_sd$Variable_Name <- NA
+fig_3b_sd$Effect <- NA
+fig_3b_sd$CI_Upper <- NA
+fig_3b_sd$CI_Lower <- NA
+fig_3b_sd$P_Value <- NA
+fig_3b_sd$Standard_Error <- NA
+
+#Order columns: 
+fig_3a_sd <- fig_3a_sd %>% select(Panel,Variable_Name,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+fig_3b_sd <- fig_3b_sd %>% select(Panel,Variable_Name,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+fig_3c_sd <- fig_3c_sd %>% select(Panel,Variable_Name,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error,Proportion,Number_low_quality_links,Article_Rating)
+
+fig_3_sd <- rbind(fig_3a_sd,fig_3b_sd)
+fig_3_sd <- rbind(fig_3_sd,fig_3c_sd)
+
+write_csv(fig_3_sd,'./source_data/fig_3_source_data.csv')
+
+
+######################################################################
+
+############################ Figure 4 ################################
+
+######################################################################
+
+
+#Read in data:
+fig_4a_sd <- read_csv("./source_data/fig_4a_source_data.csv")
+fig_4b_sd <- read_csv("./source_data/fig_4b_source_data.csv")
+fig_4c_sd <- read_csv("./source_data/fig_4c_source_data.csv")
+
+#Rename first column:
+colnames(fig_4a_sd)[1] <- 'X'
+colnames(fig_4b_sd)[1] <- 'X'
+colnames(fig_4c_sd)[1] <- 'X'
+
+#Remove unnecessary column:
+fig_4a_sd$X <- NULL
+fig_4b_sd$X <- NULL
+fig_4c_sd$X <- NULL
+
+#Remove unnecessary column:
+fig_4a_sd$Panel <- 'A'
+fig_4b_sd$Panel <- 'B'
+fig_4c_sd$Panel <- 'C'
+
+#Rename columns:
+colnames(fig_4a_sd) <- c('Article_Type','Study','Effect','CI_Upper','CI_Lower','P_Value','Standard_Error','Panel')
+colnames(fig_4b_sd) <- c('Article_Type','Study','Effect','CI_Upper','CI_Lower','P_Value','Standard_Error','Panel')
+colnames(fig_4c_sd) <- c('Article_Type','Study','Effect','CI_Upper','CI_Lower','P_Value','Standard_Error','Panel')
+
+#Reorder columns:
+fig_4a_sd <- fig_4a_sd %>% select(Panel,Article_Type,Study,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error)
+fig_4b_sd <- fig_4b_sd %>% select(Panel,Article_Type,Study,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error)
+fig_4c_sd <- fig_4c_sd %>% select(Panel,Article_Type,Study,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error)
+
+fig_4_sd <- rbind(fig_4a_sd,fig_4b_sd)
+fig_4_sd <- rbind(fig_4_sd,fig_4c_sd)
+
+write_csv(fig_4_sd,'./source_data/fig_4_source_data.csv')
+
+
+
+
+
+#################### Combined Plots ###########################
+
+
+####################### Figure 1 ##############################
+
+library("ggpubr")
+
+ggarrange(fig_1a, fig_1b,
+          labels="auto",
+          ncol = 2,
+          font.label=list(color="black",size=8))
+
+ggsave('./Figures/fig_1.eps',height=8,width=18,units='cm',device="eps")
+
+
+ggarrange(fig_2a, fig_2b, fig_2c, fig_2d,
+          labels="auto",
+          ncol = 2,
+          nrow = 2,
+          font.label=list(color="black",size=8))
+
+ggsave('./Figures/fig_2.eps',height=16,width=18,units='cm',device="eps")
+
+
+ggarrange(fig_3a, fig_3b, fig_3c,
+          labels="auto",
+          ncol = 3,
+          font.label=list(color="black",size=8))
+
+ggsave('./Figures/fig_3.eps',height=8,width=18,units='cm',device="eps")
+
+
+
+ggarrange(fig_4a, fig_4b, fig_4c,
+          labels="auto",
+          ncol = 3,
+          font.label=list(color="black",size=8))
+
+ggsave('./Figures/fig_4.eps',height=8,width=18,units='cm',device="eps")
+
+
+
+
+
+
+
+
+
+
 
 
 
