@@ -1,6 +1,6 @@
 
 \begin{table}[htbp]
-   \caption{Results from OLS Regression Results Presented in Figure 3a}
+   \caption{Results from OLS Regression Results Presented in Figure 3a. This table presents effects for a linear regression model. All effects are estimated using ordinary least squares (OLS) with article fixed effects and standard errors clustered at the individual and article level.}
    \centering
    \begin{tabular}{lc}
       \tabularnewline \midrule \midrule

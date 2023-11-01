@@ -1,6 +1,6 @@
 
 \begin{table}[htbp]
-   \caption{Predicted Use of Headline or URL as a Search Query when Searching Online about Misinformation}
+   \caption{Predicted Use of Headline or URL as a Search Query when Searching Online about Misinformation. All effects are estimated using ordinary least squares (OLS) with article fixed effects and standard errors clustered at the individual and article level.}
    \centering
    \begin{tabular}{lc}
       \tabularnewline \midrule \midrule
@@ -8,26 +8,26 @@
       Model:                 & (1)\\  
       \midrule
       \emph{Variables}\\
-      Age                    & $1.74\times 10^{-5}$\\    
+      Age                    & $5.06\times 10^{-5}$\\    
                              & (0.0014)\\   
-      Gender (Female dummy)  & 0.0033\\   
-                             & (0.0426)\\   
-      Education              & 0.0014\\   
-                             & (0.0115)\\   
-      Income                 & 0.0146\\   
-                             & (0.0158)\\   
-      Ideological Congruence & 0.0333\\   
-                             & (0.0327)\\   
-      Digital Literacy       & -0.0043\\   
-                             & (0.0022)\\   
+      Gender (Female dummy)  & 0.0117\\   
+                             & (0.0375)\\   
+      Education              & 0.0138\\   
+                             & (0.0099)\\   
+      Income                 & 0.0033\\   
+                             & (0.0135)\\   
+      Ideological Congruence & 0.0307\\   
+                             & (0.0293)\\   
+      Digital Literacy       & -0.0044$^{*}$\\   
+                             & (0.0016)\\   
       \midrule
       \emph{Fixed-effects}\\
       Article                & Yes\\  
       \midrule
       \emph{Fit statistics}\\
-      Observations           & 1,267\\  
-      R$^2$                  & 0.05276\\  
-      Within R$^2$           & 0.01526\\  
+      Observations           & 930\\  
+      R$^2$                  & 0.05668\\  
+      Within R$^2$           & 0.01775\\  
       \midrule \midrule
       \multicolumn{2}{l}{\emph{Clustered (Article \& Respondent) standard-errors in parentheses}}\\
       \multicolumn{2}{l}{\emph{Signif. Codes: ***: 0.001, **: 0.01, *: 0.05}}\\

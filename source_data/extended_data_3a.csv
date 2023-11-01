@@ -1,0 +1,13 @@
+"","Coef","Low_Conf","Upp_Conf","Measure","Type_News","P_Value","Standard_Error","Ideological_Congruence"
+"2",0.1593,-0.2318,0.5504,"Ordinal (7)","Bottom 50%
+News Quality","0.398638718245767","0.288068674340405","Ideologically Congruent"
+"3",0.134,-0.215,0.4829,"Ordinal (4)","Bottom 50%
+News Quality","0.431834510415068","0.139606484164565","Ideologically Congruent"
+"4",0.2292,-0.1263,0.5847,"True (Dummy)","Bottom 50%
+News Quality","0.18983476362774","0.0805035368854586","Ideologically Congruent"
+"5",-0.2403,-0.5778,0.0972,"Ordinal (7)","Top 50%
+News Quality","0.150622597941879","0.249527671426555","Ideologically Congruent"
+"6",-0.2482,-0.5895,0.0932,"Ordinal (4)","Top 50%
+News Quality","0.147184787398133","0.137368083978255","Ideologically Congruent"
+"7",-0.1959,-0.5381,0.1462,"True (Dummy)","Top 50%
+News Quality","0.24035654294603","0.0787074653442475","Ideologically Congruent"

@@ -1,0 +1,25 @@
+Panel,Group,DV_Measure,Type_News_Quality,Effect,CI_Upper,CI_Lower,P_Value,Standard_Error
+A,Ideologically Congruent,Ordinal (7),"Bottom 50%
+News Quality",0.1593,0.5504,-0.2318,0.398638718245767,0.288068674340405
+A,Ideologically Congruent,Ordinal (4),"Bottom 50%
+News Quality",0.134,0.4829,-0.215,0.431834510415068,0.139606484164565
+A,Ideologically Congruent,True (Dummy),"Bottom 50%
+News Quality",0.2292,0.5847,-0.1263,0.18983476362774,0.0805035368854586
+A,Ideologically Congruent,Ordinal (7),"Top 50%
+News Quality",-0.2403,0.0972,-0.5778,0.150622597941879,0.249527671426555
+A,Ideologically Congruent,Ordinal (4),"Top 50%
+News Quality",-0.2482,0.0932,-0.5895,0.147184787398133,0.137368083978255
+A,Ideologically Congruent,True (Dummy),"Top 50%
+News Quality",-0.1959,0.1462,-0.5381,0.24035654294603,0.0787074653442475
+B,Ideologically Incongruent,Ordinal (7),"Bottom 50%
+News Quality",0.1735,0.5205,-0.1735,0.309597939621005,0.31097604714804
+B,Ideologically Incongruent,Ordinal (4),"Bottom 50%
+News Quality",0.2768,0.6319,-0.0783,0.120643078253472,0.166638321176704
+B,Ideologically Incongruent,True (Dummy),"Bottom 50%
+News Quality",0.3858,0.6977,0.0738,0.0197116019543322,0.0663045710805887
+B,Ideologically Incongruent,Ordinal (7),"Top 50%
+News Quality",-0.0746,0.2319,-0.3812,0.627870043378096,0.287199351577295
+B,Ideologically Incongruent,Ordinal (4),"Top 50%
+News Quality",0.0371,0.3333,-0.2592,0.801493870028357,0.142418752310809
+B,Ideologically Incongruent,True (Dummy),"Top 50%
+News Quality",0.1177,0.3754,-0.14,0.382138807632941,0.0576086206293028
