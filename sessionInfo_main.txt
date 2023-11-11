@@ -12,21 +12,24 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] lsa_0.73.3      SnowballC_0.7.0 tm_0.7-11       NLP_0.2-1       lubridate_1.9.2 forcats_1.0.0  
- [7] stringr_1.5.0   purrr_1.0.1     readr_2.1.4     tidyr_1.3.0     tibble_3.2.1    tidyverse_2.0.0
-[13] ggpubr_0.6.0    Rmisc_1.5.1     plyr_1.8.8      lattice_0.20-45 lmtest_0.9-40   zoo_1.8-12     
-[19] irr_0.84.1      lpSolve_5.6.18  fixest_0.11.1   xtable_1.8-4    dplyr_1.1.2     ggplot2_3.4.2  
+ [1] ggpubr_0.6.0           lubridate_1.9.2        forcats_1.0.0          stringr_1.5.0         
+ [5] purrr_1.0.1            readr_2.1.4            tidyr_1.3.0            tibble_3.2.1          
+ [9] tidyverse_2.0.0        Rmisc_1.5.1            plyr_1.8.8             lattice_0.20-45       
+[13] lmtest_0.9-40          zoo_1.8-12             irr_0.84.1             lpSolve_5.6.18        
+[17] fixest_0.11.1          xtable_1.8-4           dplyr_1.1.2            ggplot2_3.4.2         
+[21] BayesFactor_0.9.12-4.5 Matrix_1.6-1.1         coda_0.19-4           
 
 loaded via a namespace (and not attached):
  [1] bit64_4.0.5         vroom_1.6.3         carData_3.0-5       Formula_1.2-5       yaml_2.3.7         
- [6] slam_0.1-50         numDeriv_2016.8-1.1 pillar_1.9.0        backports_1.4.1     glue_1.6.2         
+ [6] slam_0.1-50         backports_1.4.1     numDeriv_2016.8-1.1 pillar_1.9.0        glue_1.6.2         
 [11] digest_0.6.31       ggsignif_0.6.4      colorspace_2.1-0    sandwich_3.0-2      cowplot_1.1.1      
-[16] htmltools_0.5.5     pkgconfig_2.0.3     broom_1.0.4         scales_1.2.1        tzdb_0.4.0         
-[21] timechange_0.2.0    generics_0.1.3      farver_2.1.1        car_3.1-2           withr_2.5.0        
-[26] cli_3.6.1           magrittr_2.0.3      crayon_1.5.2        evaluate_0.21       fansi_1.0.4        
-[31] nlme_3.1-162        rstatix_0.7.2       xml2_1.3.3          dreamerr_1.2.3      textshaping_0.3.6  
-[36] tools_4.2.3         hms_1.1.3           lifecycle_1.0.3     munsell_0.5.0       compiler_4.2.3     
-[41] systemfonts_1.0.4   rlang_1.1.1         grid_4.2.3          rstudioapi_0.14     labeling_0.4.2     
-[46] rmarkdown_2.21      gtable_0.3.3        abind_1.4-5         R6_2.5.1            knitr_1.42         
-[51] bit_4.0.5           fastmap_1.1.1       utf8_1.2.3          ragg_1.2.5          stringi_1.7.12     
-[56] parallel_4.2.3      Rcpp_1.0.10         vctrs_0.6.2         tidyselect_1.2.0    xfun_0.39          
+[16] htmltools_0.5.5     tm_0.7-11           pkgconfig_2.0.3     broom_1.0.4         mvtnorm_1.1-3      
+[21] scales_1.2.1        tzdb_0.4.0          MatrixModels_0.5-1  timechange_0.2.0    car_3.1-2          
+[26] generics_0.1.3      farver_2.1.1        withr_2.5.0         pbapply_1.7-2       NLP_0.2-1          
+[31] cli_3.6.1           magrittr_2.0.3      crayon_1.5.2        evaluate_0.21       fansi_1.0.4        
+[36] nlme_3.1-162        rstatix_0.7.2       xml2_1.3.3          dreamerr_1.2.3      textshaping_0.3.6  
+[41] tools_4.2.3         hms_1.1.3           lifecycle_1.0.3     munsell_0.5.0       compiler_4.2.3     
+[46] systemfonts_1.0.4   rlang_1.1.1         grid_4.2.3          rstudioapi_0.14     labeling_0.4.2     
+[51] rmarkdown_2.21      gtable_0.3.3        abind_1.4-5         R6_2.5.1            knitr_1.42         
+[56] fastmap_1.1.1       bit_4.0.5           utf8_1.2.3          ragg_1.2.5          stringi_1.7.12     
+[61] parallel_4.2.3      Rcpp_1.0.10         vctrs_0.6.2         tidyselect_1.2.0    xfun_0.39          

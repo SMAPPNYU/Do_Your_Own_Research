@@ -529,9 +529,9 @@ fig_2b <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   ylab("\nEffect of Searching for Information on         \nPerceived Veracity of Misinformation        \n(1 unit is 1 standard deviation)        ") +
   theme_classic() +
   theme(axis.title.x = element_text(size=8),
-        axis.text.x  = element_text(size=6),
+        axis.text.x  = element_text(size=8),
         axis.title.y = element_text(size=8),
-        axis.text.y  = element_text(size=6),
+        axis.text.y  = element_text(size=8),
         plot.title = element_text(size = 8),
         legend.title = element_text(size=6),
         legend.text = element_text(size=8),
@@ -635,9 +635,9 @@ fig_2a <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Ratin
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"),
         axis.title.x = element_text(size=8),
-        axis.text.x  = element_text(size=6),
+        axis.text.x  = element_text(size=8),
         axis.title.y = element_text(size=8),
-        axis.text.y  = element_text(size=6),
+        axis.text.y  = element_text(size=8),
         title =element_text(size=6, face='bold'),
         legend.text = element_text(size=6)) + guides(fill=guide_legend(
           keywidth=0.2,
@@ -647,7 +647,7 @@ fig_2a <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Ratin
   ylim(0,1)
 
 
-
+fig_2a
 
 
 colnames(Matrix_Dist)[2] <- 'Number_low_quality_links'
@@ -874,16 +874,20 @@ fig_2c <- ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
   ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
   theme_classic() +
   theme(axis.title.x = element_text(size=8),
-        axis.text.x  = element_text(size=6),
+        axis.text.x  = element_text(size=8),
         axis.title.y = element_text(size=8),
-        axis.text.y  = element_text(size=6),
+        axis.text.y  = element_text(size=8),
         plot.title = element_text(size = 8),
         legend.title = element_text(size=8),
         legend.text = element_text(size=8),
         title =element_text(size=8, face='bold')) +
-  ylim(-0.55,0.55) +
+  guides(fill=guide_legend(
+    keywidth=0.2,
+    keyheight=0.2,
+    default.unit="inch")) +
   scale_x_continuous("Type of News Returned by \n Search Engine \n",breaks=c(1.5,0.9),labels=c('At Least 10%\nof News URLs\nAre Unreliable',
-                                                                                                   'Only Very Reliable\nNews Sources'),limits=c(0.5,2.0)) +
+                                                                                                   'Only Very\nReliable\nSources'),limits=c(0.5,2.0)) +
+  scale_y_continuous(breaks=c(-0.4,0.0,0.4),limits=c(-0.55,0.55)) +
   coord_flip()
 
 
@@ -1129,9 +1133,9 @@ fig_2d <- ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
   ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
   theme_classic() +
   theme(axis.title.x = element_text(size=8),
-        axis.text.x  = element_text(size=6),
+        axis.text.x  = element_text(size=8),
         axis.title.y = element_text(size=8),
-        axis.text.y  = element_text(size=6),
+        axis.text.y  = element_text(size=8),
         plot.title = element_text(size = 8),
         legend.title = element_text(size=8),
         legend.text = element_text(size=8),
@@ -1141,6 +1145,7 @@ fig_2d <- ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
                                                                                                                        '50-75%',
                                                                                                                        '25-50%',
                                                                                                                        '0-25%'),limits=c(0.5,3.0)) +
+  scale_y_continuous(breaks=c(-0.3,0.0,0.3,0.6),limits=c(-0.5,0.7)) +
   coord_flip()
 
 
@@ -2075,7 +2080,7 @@ CI_3_2_1 <- confint(lin_results_fit_3_2_1,se='twoway')
 #Confirm the null hypothesis: 
 library(BayesFactor)
 
-bf = ttestBF(formula = True_Dummy ~ Treat_Search, data = T_Mainstream_Data_Study_3)
+bf = ttestBF(formula = True_Dummy ~ Treatment, data = T_Mainstream_Data_Study_3)
 
 bf
 
@@ -4211,6 +4216,9 @@ ggarrange(fig_1a, fig_1b,
           font.label=list(color="black",size=8))
 
 ggsave('./Figures/fig_1.eps',height=8,width=18,units='cm',device="eps")
+
+
+
 
 
 ggarrange(fig_2a, fig_2b, fig_2c, fig_2d,
