@@ -1,5 +1,5 @@
 % latex table generated in R 4.2.3 by xtable 1.8-4 package
-% Wed Oct  4 18:23:57 2023
+% Fri Nov 10 10:58:34 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{|p{3cm}||p{3cm}|p{3cm}|p{3cm}|}
