@@ -1,7 +1,14 @@
 
+
+###################################################################################################
+
+###################################################################################################
+
+###################################################################################################
+
 #Author: Kevin Aslett
 #Code Title: Main_text_Figures.R
-#Paper Title: Do Your Own Research? Searching Online About Misinformation Increases Belief
+#Paper Title: Online Searches to Evaluate Misinformation Can Increase Its Perceived Veracity
 #Purpose of code: Generate all figures that are located in the main text of the paper.
 
 #FILES IN:
@@ -43,8 +50,13 @@
 #Table 7: Balance_7.txt
 #Table 8: Balance_8.txt
 
+###################################################################################################
 
-#Load in Libraries:
+###################################################################################################
+
+###################################################################################################
+
+#Read in Libraries:
 library(ggplot2)
 library(dplyr)
 library(xtable)
@@ -54,129 +66,144 @@ library(irr)
 library(lmtest)
 library(Rmisc)
 
-
 #Set color palettes to use:
 cbbPalette_1 <- c("#009E73","#E69F00","#56B4E9","#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 cbbPalette_2 <- c("#E69F00","#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 cbbPalette_3 <- c("#E69F00", "#009E73","#56B4E9", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 
-#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 1:
 
-#Pull in Study 1 data:
+########################################################################################
+
+# Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 1 #
+
+########################################################################################
+
+#Read in Study 1 data:
 Study_1_df <- read.csv('./Data/Study_1_df_FM.csv')
-Study_1_df$Article_day <- as.character(Study_1_df$Article_day)
-Study_1_df$ResponseId <- as.character(Study_1_df$ResponseId)
 
 #Remove NA values:
 Study_1_df = na.omit(Study_1_df)
 
-#Run OLS Model with clustered standard errors:
+#Run OLS Model with clustered standard errors (Categorical Measure - True Dummy):
 lin_results_fit_1_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df)
-#Produce confidence intervals with clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_1_1 <- confint(lin_results_fit_1_1)
 
-#Cohen's D:
+#Calculate Cohen's d:
 lin_results_fit_1_1$coefficients[1]/sd(Study_1_df$Susc_FN)
 
 #Percentage change:
 lin_results_fit_1_1$coefficients[1]/mean(Study_1_df$Susc_FN[Study_1_df$Treat_Search==0])
 
-#Run OLS Model with clustered standard errors:
+#Run OLS Model with clustered standard errors (7-point ordinal scale):
 lin_results_fit_1_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_1_df)
-#Produce confidence intervals with clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_1_2 <- confint(lin_results_fit_1_2)
 
-#Cohen's D:
+#Calculate Cohen's d:
 lin_results_fit_1_2$coefficients[1]/sd(Study_1_df$Likert_Evaluation,na.rm=T)
 
 
-#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 2:
-#Pull in this data: Search Experiment 1: Study 1:
+########################################################################################
+
+# Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 2 #
+
+########################################################################################
+
+
+#Read in Study 2 data:
 Study_2_df <- read.csv('./Data/Study_2_df_FM.csv')
-Study_2_df$Article_day <- as.character(Study_2_df$Article_day)
-Study_2_df$ResponseId <- as.character(Study_2_df$ResponseId)
 
 #Remove NA values:
 Study_2_df = na.omit(Study_2_df)
 
-#Run OLS Model with clustered standard errors:
+#Run OLS Model with clustered standard errors (Categorical Measure - True Dummy):
 lin_results_fit_2_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df)
-#Produce confidence intervals with clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_2_1 <- confint(lin_results_fit_2_1)
 
-#Cohen's D:
+#Calculate Cohen's d:
 lin_results_fit_2_1$coefficients[1]/sd(Study_2_df$Susc_FN)
 
 #Percentage change:
 lin_results_fit_2_1$coefficients[1]/mean(Study_2_df$Susc_FN[Study_2_df$Treat_Search==0])
 
 
-#Run OLS Model with clustered standard errors:
+#Run OLS Model with clustered standard errors (7-point ordinal scale):
 lin_results_fit_2_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_2_df)
-#Produce confidence intervals with clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_2_2 <- confint(lin_results_fit_2_2)
 
-#Cohen's D:
+#Calculate Cohen's s:
 lin_results_fit_2_2$coefficients[1]/sd(Study_2_df$Likert_Evaluation)
 
-#Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 3:
-#Pull in this data: Search Experiment 1: Study 1:
+
+########################################################################################
+
+# Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 3 #
+
+########################################################################################
+
+#Read in data for Study 3:
 Study_3_df <- read.csv('./Data/Study_3_df_FM.csv')
-Study_3_df$Article_day <- as.character(Study_3_df$Article_day)
-Study_3_df$ResponseId <- as.character(Study_3_df$ResponseId)
 
 #Remove NA values:
 Study_3_df = na.omit(Study_3_df)
 
-#Number of unique respondents:
-length(unique(Study_3_df$ResponseId))
-
-#Run linear regression and produce coefficient values:
+#Run OLS Model with clustered standard errors (Categorical Measure - True Dummy):
 lin_results_fit_3_1 = feols(True_Dummy ~ Treatment + Age + Dummy_Ideology + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
-#Produce confidence intervals using clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_3_1 <- confint(lin_results_fit_3_1)
 
-#Cohen's D:
+#Calculate Cohen's d:
 lin_results_fit_3_1$coefficients[1]/sd(Study_3_df$Susc_FN)
 
-#Run linear regression and produce coefficient values:
+#Run OLS Model with clustered standard errors (7-point ordinal scale):
 lin_results_fit_3_2 = feols(Likert_Evaluation ~ Treatment + Age + Dummy_Ideology + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_3_df)
-#Produce confidence intervals using clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_3_2 <- confint(lin_results_fit_3_2)
 
-#Cohen's D:
+#Calculate Cohen's d:
 lin_results_fit_3_2$coefficients[1]/sd(Study_3_df$Likert_Evaluation)
 
 #Run Model Testing Effect of Searching Online on Belief in Misinformation for Study 4:
-#Pull in this data: Search Experiment 1: Study 1:
+
+#Read in data from Study 4
 Study_4_df <- read.csv('./Data/Study_4_df_FM.csv')
-Study_4_df$Article_day <- as.character(Study_4_df$Article_day)
-Study_4_df$ResponseId <- as.character(Study_4_df$ResponseId)
 
 #Remove NA values:
 Study_4_df = na.omit(Study_4_df)
 
-#Number of unique respondents:
-length(unique(Study_4_df$ResponseId))
-
-#Run OLS Model with clustered standard errors:
+#Run OLS Model with clustered standard errors (Categorical Measure - True Dummy):
 lin_results_fit_4_1 = feols(Susc_FN ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df)
-#Produce confidence intervals with clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_4_1 <- confint(lin_results_fit_4_1)
 
-#Cohen's D:
+#Calculate Cohen's d:
 lin_results_fit_4_1$coefficients[1]/sd(Study_4_df$Susc_FN)
 
-#Run OLS Model with clustered standard errors:
+#Run OLS Model with clustered standard errors (7-point ordinal scale):
 lin_results_fit_4_2 = feols(Likert_Evaluation ~ Treat_Search + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score | Article_day, cluster = ~Article_day+ResponseId,se="twoway", data = Study_4_df)
-#Produce confidence intervals with clustered standard errors:
+
+#Calculate 95% confidence intervals:
 CI_4_2 <- confint(lin_results_fit_4_2)
 
-#Cohen's D:
+#Cohen's d:
 lin_results_fit_4_2$coefficients[1]/sd(Study_4_df$Likert_Evaluation)
 
-########################################### Figure 1A: Categorical (Rate as True) ####################################################
+#########################################
+
+# Figure 1A: Categorical (Rate as True) #
+
+#########################################
 
 #Create vector with Study names:
 Coef_names <- rev(c('Study 1',
@@ -202,11 +229,13 @@ CI_Lower <- rev(c(CI_1_1[1,1],
                   CI_3_1[1,1],
                   CI_4_1[1,1])) 
 
+#Create vector with p-values:
 P_Value <- rev(c(lin_results_fit_1_1$coeftable[1,4],
                  lin_results_fit_2_1$coeftable[1,4],
                  lin_results_fit_3_1$coeftable[1,4],
                  lin_results_fit_4_1$coeftable[1,4]))
 
+#Create vector with standard errors:
 Standard_Error <- rev(c(lin_results_fit_1_1$coeftable[1,2],
                         lin_results_fit_2_1$coeftable[1,2],
                         lin_results_fit_3_1$coeftable[1,2],
@@ -214,22 +243,25 @@ Standard_Error <- rev(c(lin_results_fit_1_1$coeftable[1,2],
 
 
 
-#Put together matrix with data for plot:
-d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
-rownames(d_matrix) <- c()
-d_matrix <- data.frame(d_matrix)
-d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
-d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
-d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
-d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
-d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
-d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+#Bind together previously created vectors:
+d_matrix_1a <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
 
-#Set points on Y-Axis:
-d_matrix$x<-c(1,2,3,4)
+#Create blank rownames:
+rownames(d_matrix_1a) <- c()
 
-#Produce plot:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+#Convert matrix to dataframe:
+d_matrix_1a <- data.frame(d_matrix_1a)
+
+#Convert variables to numeric:
+d_matrix_1a$Coefficients <- as.numeric(d_matrix_1a$Coefficients)
+d_matrix_1a$CI_Lower <- as.numeric(d_matrix_1a$CI_Lower)
+d_matrix_1a$CI_Upper <- as.numeric(d_matrix_1a$CI_Upper)
+
+#Set points on x-axis:
+d_matrix_1a$x<-c(1,2,3,4)
+
+#Save plot as fig_1a:
+fig_1a <- ggplot(data = d_matrix_1a, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1) +
   geom_point(size=2) +
@@ -253,43 +285,21 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
                                                       'Study 1'),limits=c(0.5,4.5)) +
   coord_flip()
 
-#Save figure:
-#ggsave('./Figures/All_4_Studies_Categorical.png',height=9,width=9,units='cm')
-#ggsave('./Figures/All_4_Studies_Categorical.pdf',height=9,width=9,units='cm')
-#ggsave('./Figures/All_4_Studies_Categorical.eps',height=9,width=9,units='cm',device="eps")
+#Change 1st column name to "Study"
+colnames(d_matrix_1a)[1] <- 'Study'
+
+#Remove x-axis points
+d_matrix_1a$x <- NULL
+
+#Write zource data to a csv:
+write.csv(d_matrix_1a,'./source_data/fig_1a_source_data.csv')
 
 
-fig_1a <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1) +
-  geom_point(size=2) +
-  geom_linerange(aes(min = CI_Lower,
-                     max = CI_Upper),
-                 size=1) +
-  ylab("\nEffect of Searching Online on Probability \nof Rating Misinformation as True") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=10),
-        axis.text.x  = element_text(size=8),
-        axis.title.y = element_text(size=10),
-        axis.text.y  = element_text(size=8),
-        plot.title = element_text(size = 10),
-        legend.title = element_text(size=10),
-        legend.text = element_text(size=10),
-        title =element_text(size=18, face='bold')) +
-  ylim(-0.05,0.2) +
-  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
-                                                      'Study 3',
-                                                      'Study 2',
-                                                      'Study 1'),limits=c(0.5,4.5)) +
-  coord_flip()
+####################################
 
-colnames(d_matrix)[1] <- 'Study'
-d_matrix$x <- NULL
+# Figure 1B: Ordinal Scale (Seven) #
 
-write.csv(d_matrix,'./source_data/fig_1a_source_data.csv')
-
-
-############################################ Figure 1B: Ordinal Scale (Seven) ####################################################
+####################################
 
 #Create vector with Study names:
 Coef_names <- rev(c('Study 1',
@@ -315,11 +325,13 @@ CI_Lower <- rev(c(CI_1_2[1,1],
                   CI_3_2[1,1],
                   CI_4_2[1,1]))         
 
+#Create vector with p-values:
 P_Value <- rev(c(lin_results_fit_1_2$coeftable[1,4],
                  lin_results_fit_2_2$coeftable[1,4],
                  lin_results_fit_3_2$coeftable[1,4],
                  lin_results_fit_4_2$coeftable[1,4]))
 
+#Create vector with standard errors:
 Standard_Error <- rev(c(lin_results_fit_1_2$coeftable[1,2],
                         lin_results_fit_2_2$coeftable[1,2],
                         lin_results_fit_3_2$coeftable[1,2],
@@ -327,22 +339,26 @@ Standard_Error <- rev(c(lin_results_fit_1_2$coeftable[1,2],
 
 
 
-#Put together matrix with data for plot:
-d_matrix <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
-rownames(d_matrix) <- c()
-d_matrix <- data.frame(d_matrix)
-d_matrix$Coefficients <- as.character(d_matrix$Coefficients)
-d_matrix$CI_Lower <- as.character(d_matrix$CI_Lower)
-d_matrix$CI_Upper <- as.character(d_matrix$CI_Upper)
-d_matrix$Coefficients <- as.numeric(d_matrix$Coefficients)
-d_matrix$CI_Lower <- as.numeric(d_matrix$CI_Lower)
-d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
+#Bind vectors together:
+d_matrix_1b <- cbind(Coef_names,Coefficients,CI_Upper,CI_Lower,P_Value,Standard_Error)
 
-#Set points on Y-Axis:
-d_matrix$x<-c(1,2,3,4)
+#Ensure rownames are empty:
+rownames(d_matrix_1b) <- c()
 
-#Produce plot:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
+#Convert matrix to dataframe:
+d_matrix_1b <- data.frame(d_matrix_1b)
+
+#Convert variable to numeric
+d_matrix_1b$Coefficients <- as.numeric(d_matrix_1b$Coefficients)
+d_matrix_1b$CI_Lower <- as.numeric(d_matrix_1b$CI_Lower)
+d_matrix_1b$CI_Upper <- as.numeric(d_matrix_1b$CI_Upper)
+
+#Set points on x-axis:
+d_matrix_1b$x<-c(1,2,3,4)
+
+#Save plot to fig_1b:
+
+fig_1b <- ggplot(data = d_matrix_1b, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1.2) +
   geom_point(size=2) +
@@ -367,46 +383,20 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   coord_flip()
 
 
-fig_1b <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(size=2) +
-  geom_linerange(aes(min = CI_Lower,
-                     max = CI_Upper),
-                 size=1) +
-  ylab("\nEffect of Searching Online on the Perceived      \n Veracity of Misinformation (7-point scale)       ") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=10),
-        axis.text.x  = element_text(size=8),
-        axis.title.y = element_text(size=10),
-        axis.text.y  = element_text(size=8),
-        plot.title = element_text(size = 10),
-        legend.title = element_text(size=10),
-        legend.text = element_text(size=10),
-        title =element_text(size=18, face='bold')) +
-  ylim(-0.10,0.8) +
-  scale_x_continuous(" \n",breaks=c(1,2,3,4),labels=c('Study 4',
-                                                      'Study 3',
-                                                      'Study 2',
-                                                      'Study 1'),limits=c(0.5,4.5)) +
-  coord_flip()
+#Change 1st column name to "Study"
+colnames(d_matrix_1b)[1] <- 'Study'
 
+#Remove x-axis points
+d_matrix_1b$x <- NULL
 
-#Save figure:
-#ggsave('./Figures/All_4_Studies_Ordinal.png',height=9,width=9,units='cm')
-#ggsave('./Figures/All_4_Studies_Ordinal.pdf',height=9,width=9,units='cm')
-#ggsave('./Figures/All_4_Studies_Ordinal.eps',height=9,width=9,units='cm',device="eps")
+#Write zource data to a csv:
+write.csv(d_matrix_1b,'./source_data/fig_1b_source_data.csv')
 
-colnames(d_matrix)[1] <- 'Study'
-d_matrix$x <- NULL
+###############
 
-write.csv(d_matrix,'./source_data/fig_1b_source_data.csv')
+# Figure 2b:  #
 
-################################################################################################################
-
-########################################## Figure 2b: Study_5_1.png ############################################
-
-################################################################################################################
+###############
 
 #Pull in Fact-Checker Ideological Perspective
 #Pull in this data: Search Experiment 1: Study 1:
