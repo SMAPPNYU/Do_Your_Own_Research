@@ -1,7 +1,7 @@
 
 #Author: Kevin Aslett
 #Code Title: Supplementary_Materials.R
-#Paper Title: Do Your Own Research? Searching Online About Misinformation Increases Belief
+#Paper Title: Online Searches to Evaluate Misinformation Can Increase Its Perceived Veracity
 #Purpose of code: Generate all figures that are located in the supplementary materials of the paper.
 
 #FILES IN:
@@ -133,7 +133,7 @@
 #Table 63: Figure_4c_5.txt
 #Table 64: Figure_4c_6.txt
 
-#Load in Libraries:
+#Readin Libraries:
 library(ggplot2)
 library(dplyr)
 library(xtable)
@@ -1760,7 +1760,7 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_linerange(aes(min = CI_Lower,
                      max = CI_Upper),
                  size=1.5) +
-  ylab("\nEffect of Searching Online on the \nPerceived Veracity of Misinformation (7-point scale) ") +
+  ylab("\nEffect of Searching Online on the Perceived      \n Veracity of Misinformation (7-point scale)       ") +
   theme_classic() +
   theme(axis.title.x = element_text(size=18),
         axis.text.x  = element_text(size=16),
@@ -7949,7 +7949,8 @@ ggsave('./Figures/ED_fig_7.eps',height=8,width=18,units='cm',device="eps")
 ################################# Section W Cosine Similarity ##############################
 
 ############################################################################################
-
+Article_data_1$ALL_URLS[100]
+Article_data_1$Domains[131]
 
 #Read-in data:
 Article_data_1 <- read.csv('./Data/All_Search_Results_Combined.csv')
