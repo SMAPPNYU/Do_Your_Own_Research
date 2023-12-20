@@ -29,26 +29,17 @@
 #Study 5 (True Article Data): Study_5_df_T.csv
 
 #FILES OUT:
-#Figure 1a: All_4_Studies_Categorical.png
-#Figure 1b: All_4_Studies_Ordinal.png
-#Figure 2a: Study_5_Bar_Graph_Google_Search.png
-#Figure 2b: Study_5_1.png
-#Figure 2c: Coefs_CIs.png
-#Figure 2d: Coefs_CIs_2.png
-#Figure 3a: Coefs_CIs_Predicting_Unrel_Dummy.png
-#Figure 3b: Study_5_Bar_Graph_Google_Search_HL.png
-#Figure 3c: Coefs_CIs_Predicting_Headline_Link.png
-#Figure 4a: T_FM_Fig_1A_True_Dummy.png
-#Figure 4b: Fig_1A_True_Dummy.png
-#Figure 4c: Types_Fig_1A_True_Dummy.png
-#Table 1: Balance_1.txt
-#Table 2: Balance_2.txt
-#Table 3: Balance_3.txt
-#Table 4: Balance_4.txt
-#Table 5: Balance_5.txt
-#Table 6: Balance_6.txt
-#Table 7: Balance_7.txt
-#Table 8: Balance_8.txt
+#Figures:
+#Figure 1: fig_1.eps
+#Figure 2: fig_2.eps
+#Figure 3: fig_3.eps
+#Figure 4: fig_4.eps
+#Source Data:
+#SD for Figure 1: ./source_data/fig_1_source_data.csv 
+#SD for Figure 2: ./source_data/fig_2_source_data.csv
+#SD for Figure 3: ./source_data/fig_3_source_data.csv
+#SD for Figure 4: ./source_data/fig_4_source_data.csv
+
 
 ###################################################################################################
 
@@ -392,11 +383,11 @@ d_matrix_1b$x <- NULL
 #Write zource data to a csv:
 write.csv(d_matrix_1b,'./source_data/fig_1b_source_data.csv')
 
-###############
+###########################################################################
 
-# Figure 2b:  #
+############################### Figure 2b   ###############################
 
-###############
+###########################################################################
 
 #Pull in Fact-Checker Ideological Perspective
 #Pull in this data: Search Experiment 1: Study 1:
@@ -503,12 +494,6 @@ ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   scale_x_continuous("Perceived Veracity Scale \n",breaks=c(0.3,0.2,0.1),labels=Coef_names,limits=c(0.0,0.4)) +
   coord_flip()
 
-#Save plot:
-#ggsave('./Figures/Study_5_1.png',height=16,width=18,units='cm')
-#ggsave('./Figures/Study_5_1.jpg',height=16,width=18,units='cm')
-#ggsave('./Figures/Study_5_1.pdf',height=16,width=18,units='cm')
-
-
 fig_2b <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 1) +
@@ -544,7 +529,7 @@ write.csv(d_matrix,'./source_data/extended_data_4b_source_data.csv')
 
 ################################################################################################################
 
-########################################## Figure 2a: Study_5_Bar_Graph_Google_Search.png ######################
+########################################## Figure 2a ###########################################################
 
 ################################################################################################################
 
@@ -582,38 +567,6 @@ Matrix_Dist$Proportion <- round(Matrix_Dist$Proportion,2)
 
 
 #Produce plot:
-ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
-  geom_bar(position="dodge", stat="identity") +
-  scale_fill_manual(values=cbbPalette_1, name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
-  ylab('Proportion of Individuals Whose Search Engine Results         \n Return Unreliable News by Article Type         \n') +
-  xlab('\nFact-Checker Rating of Article Individual\n Queries Search Engines About') +
-  theme_bw() + 
-  theme(panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.title.x = element_text(size=14),
-        axis.text.x  = element_text(size=14),
-        axis.title.y = element_text(size=14),
-        axis.text.y  = element_text(size=14),
-        title =element_text(size=14, face='bold'),
-        legend.text = element_text(size=14)) + guides(fill=guide_legend(
-          keywidth=0.3,
-          keyheight=0.3,
-          default.unit="inch")) +
-  geom_text(aes(label=Proportion), position=position_dodge(width=0.9), vjust=-0.25,size=4) +
-  ylim(0,1)
-
-
-
-
-#Save figure:
-#ggsave('./Figures/Study_5_Bar_Graph_Google_Search.png',height=16,width=18,units='cm')
-#ggsave('./Figures/Study_5_Bar_Graph_Google_Search.pdf',height=16,width=18,units='cm')
-
-
-
-
 fig_2a <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
   geom_bar(position="dodge", stat="identity") +
   scale_fill_manual(values=cbbPalette_1, name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
@@ -664,7 +617,7 @@ summary(fit_lm_2a)
 
 ################################################################################################################
 
-########################################## Figure 2c: Coefs_CIs.png ############################################
+########################################## Figure 2c ###########################################################
 
 ################################################################################################################
 
@@ -823,35 +776,6 @@ Fig_2c_Mat$Low_Conf <- as.character(Fig_2c_Mat$Low_Conf)
 Fig_2c_Mat$Low_Conf <- as.numeric(Fig_2c_Mat$Low_Conf)
 
 #Produce plot:
-ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Measure, shape=Measure),size=4) +
-  geom_linerange(aes(min = Low_Conf, 
-                     max = Upp_Conf, 
-                     color = Measure),
-                 size=1.5) +
-  scale_color_manual(values=cbbPalette_1, name = "Measure") +
-  ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=12),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  ylim(-0.55,0.55) +
-  scale_x_continuous("Type of News Returned by Google Search Engine \n",breaks=c(1.5,0.9),labels=c('At Least 10%\nof News URLs\nAre Unreliable',
-                                                                                                   'Only Very Reliable\nNews Sources'),limits=c(0.5,2.0)) +
-  coord_flip()
-
-#Save Figure:
-#ggsave('./Figures/Coefs_CIs.png',height=16,width=18,units='cm')
-#ggsave('./Figures/Coefs_CIs.pdf',height=16,width=18,units='cm')
-
-
 fig_2c <- ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 0.75) +
@@ -881,8 +805,6 @@ fig_2c <- ggplot(data = Fig_2c_Mat, aes(x = x, y = Coef)) +
   coord_flip()
 
 
-
-
 Fig_2c_Mat$x <- NULL
 
 write.csv(Fig_2c_Mat,'./source_data/fig_2c_source_data.csv')
@@ -892,7 +814,7 @@ write.csv(Fig_2c_Mat,'./source_data/fig_2c_source_data.csv')
 
 ################################################################################################################
 
-########################################## Figure 2d: Coefs_CIs_2.png ##########################################
+########################################## Figure 2d ###########################################################
 
 ################################################################################################################
 
@@ -1081,36 +1003,6 @@ Fig_2d_Mat$Low_Conf <- as.numeric(Fig_2d_Mat$Low_Conf)
 
 
 #Produce Plot:
-ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Measure, shape=Measure),size=4) +
-  geom_linerange(aes(min = Low_Conf, 
-                     max = Upp_Conf, 
-                     color = Measure),
-                 size=1.5) +
-  scale_color_manual(values=cbbPalette_1, name = "Measure") +
-  ylab("\n Effect of Searching Online on Belief in Misinformation\n Dependent on Quality of Search Results \n(1 unit is 1 standard deviation of that measure) ") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=12),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  ylim(-0.5,0.7) +
-  scale_x_continuous("Quartile of News Quality Returned by Google Search Engine \n",breaks=c(2.7,2.1,1.5,0.9),labels=c('75-100%',
-                                                                                                                       '50-75%',
-                                                                                                                       '25-50%',
-                                                                                                                       '0-25%'),limits=c(0.5,3.0)) +
-  coord_flip()
-
-#Save Figure:
-#ggsave('./Figures/Coefs_CIs_2.png',height=16,width=18,units='cm')
-#ggsave('./Figures/Coefs_CIs_2.pdf',height=16,width=18,units='cm')
-
 fig_2d <- ggplot(data = Fig_2d_Mat, aes(x = x, y = Coef)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 0.75) +
@@ -1176,7 +1068,7 @@ bf
 
 ################################################################################################################
 
-################################# Figure 3a: Coefs_CIs_Predicting_Unrel_Dummy.png ###############################
+################################# Figure 3a ####################################################################
 
 ################################################################################################################
 
@@ -1261,31 +1153,6 @@ d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
 d_matrix$x<-c(0.1,0.2,0.3,0.4,0.5,0.6)
 
 #Produce plot:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1) +
-  geom_point(size=2) +
-  geom_linerange(aes(min = CI_Lower,
-                     max = CI_Upper),
-                 size=1) +
-  ylab("\n The Effect of a 1 SD Increase of Indep. Var.\n on Probability of Exposure to Unreliable News") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=8),
-        axis.text.x  = element_text(size=6),
-        axis.title.y = element_text(size=8),
-        axis.text.y  = element_text(size=6),
-        plot.title = element_text(size = 8),
-        legend.title = element_text(size=8),
-        legend.text = element_text(size=8),
-        title =element_text(size=8, face='bold')) +
-  ylim(-0.1,0.15) +
-  scale_x_continuous("Demographic Covariates \n",breaks=c(0.1,0.2,0.3,0.4,0.5,0.6),labels=Coef_names,limits=c(0.0,0.7)) +
-  coord_flip()
-
-#Save figure:
-#ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy.png',height=12,width=18,units='cm')
-#ggsave('./Figures/Coefs_CIs_Predicting_Unrel_Dummy.pdf',height=12,width=18,units='cm')
-
 fig_3a <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 0.5) +
@@ -1315,7 +1182,7 @@ write.csv(d_matrix,'./source_data/fig_3a_source_data.csv')
 
 ################################################################################################################
 
-################################# Figure 3b: Study_5_Bar_Graph_Google_Search_HL.png ############################
+################################# Figure 3b ####################################################################
 
 ################################################################################################################
 
@@ -1359,32 +1226,6 @@ Matrix_Dist$Article_Rating <- factor(Matrix_Dist$Article_Rating,levels=c('Other'
 Matrix_Dist$Proportion <- round(Matrix_Dist$Proportion,2)
 
 #Produce plot:
-ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
-  geom_bar(position="dodge", stat="identity") +
-  scale_fill_manual(values=cbbPalette_1, name = "Number of News Links \nReturned by Search\nEngines From\nUnreliable Sources") +
-  ylab('Proportion of Search Queries That Return Results \n That Return Unreliable News by Article Type     \n') +
-  xlab('\nType of Search Query Used') +
-  theme_classic() + 
-  theme(axis.title.x = element_text(size=16),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=16),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  guides(fill=guide_legend(
-          keywidth=0.3,
-          keyheight=0.3,
-          default.unit="inch")) +
-  geom_text(aes(label=Proportion), position=position_dodge(width=0.9), vjust=-0.25,size=4) +
-  ylim(0,1)
-
-#Save figure:
-#ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL.png',height=16,width=18,units='cm')
-#ggsave('./Figures/Study_5_Bar_Graph_Google_Search_HL.pdf',height=16,width=18,units='cm')
-
-
 fig_3b <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Rating)) + 
   geom_bar(position="dodge", stat="identity") +
   scale_fill_manual(values=cbbPalette_1, name = "Number of \nNews Links \nReturned by \nSearch Engines \nFrom Unreliable \nSources") +
@@ -1411,9 +1252,6 @@ fig_3b <- ggplot(Matrix_Dist, aes(fill=Percentage, y=Proportion, x=Article_Ratin
 write.csv(Matrix_Dist,'./source_data/fig_3b_source_data.csv')
 
 
-
-
-
 #Comparative Statistic:
 
 #Run simple linear regression:
@@ -1423,11 +1261,9 @@ fit_lm_3b <- lm(Unrel_contain ~ Headline_Link,data=Headline_coding)
 summary(fit_lm_3b)
 
 
-
-
 ################################################################################################################
 
-################################# Figure 3c: Coefs_CIs_Predicting_Headline_Link.png ############################
+################################# Figure 3c ####################################################################
 
 ################################################################################################################
 
@@ -1512,32 +1348,6 @@ d_matrix$CI_Upper <- as.numeric(d_matrix$CI_Upper)
 d_matrix$x<-c(0.1,0.2,0.3,0.4,0.5,0.6)
 
 #Produce plot:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(size=4) +
-  geom_linerange(aes(min = CI_Lower,
-                     max = CI_Upper),
-                 size=1.5) +
-  ylab("\nThe Effect of a 1 SD Increase of Indep. Var.     \n on Probability of Using Headline/Link as Search Term        ") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=16),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=16),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  ylim(-0.1,0.1) +
-  scale_x_continuous("Demographic Covariates \n",breaks=c(0.1,0.2,0.3,0.4,0.5,0.6),labels=Coef_names,limits=c(0.0,0.7)) +
-  coord_flip()
-
-#Save figure:
-#ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link.png',height=16,width=18,units='cm')
-#ggsave('./Figures/Coefs_CIs_Predicting_Headline_Link.pdf',height=16,width=18,units='cm')
-
-
 fig_3c <- ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 0.5) +
@@ -1566,7 +1376,7 @@ write.csv(d_matrix,'./source_data/fig_3c_source_data.csv')
 
 ################################################################################################################
 
-################################# Figure 4a: T_FM_Fig_1A_True_Dummy.png ########################################
+################################# Figure 4a ####################################################################
 
 ################################################################################################################
 
@@ -1894,39 +1704,6 @@ d_matrix$x <- c(5.1,4.9,4.1,3.9,3.1,2.9,2.1,1.9,1.1,0.9)
 d_matrix_1 <- d_matrix
 
 #Produce figure:
-ggplot(data = d_matrix_1, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Study, shape=Study),size=3.5) +
-  geom_linerange(aes(min = CI_Lower, 
-                     max = CI_Upper, 
-                     color = Study),
-                 size=2) +
-  scale_color_manual(values=cbbPalette_3, name = "Type of News") +
-  scale_shape_manual(values=c(15,17),"Type of News") +
-  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=16),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=16),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  ylim(-0.1,0.2) +
-  scale_x_continuous("Study Number\n",breaks=c(1,2,3,4,5),labels=rev(c('Study 1',
-                                                                       'Study 2',
-                                                                       'Study 3',
-                                                                       'Study 4',
-                                                                       'Study 5')),limits=c(0.2,5.8)) +
-  coord_flip()
-
-
-ggsave('./Figures/T_FM_Fig_1A_True_Dummy.png',height=16,width=18,units='cm')
-ggsave('./Figures/T_FM_Fig_1A_True_Dummy.pdf',height=16,width=18,units='cm')
-
-
 fig_4a <- ggplot(data = d_matrix_1, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
              linetype = 2, size = 0.75) +
@@ -1970,7 +1747,7 @@ write.csv(d_matrix,'./source_data/fig_4a_source_data.csv')
 
 ################################################################################################################
 
-################################# Figure 4b: Fig_1A_True_Dummy.png #############################################
+################################# Figure 4b ####################################################################
 
 ################################################################################################################
 
@@ -2312,38 +2089,6 @@ d_matrix <- d_matrix %>% arrange(Coef_names)
 d_matrix$x <- c(5.2,5.0,4.8,4.2,4.0,3.8,3.2,3.0,2.8,2.2,2.0,1.8,1.2,1.0,0.8)
 
 #Produce figure:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Study, shape=Study),size=3.5) +
-  geom_linerange(aes(min = CI_Lower, 
-                     max = CI_Upper, 
-                     color = Study),
-                 size=2) +
-  scale_color_manual(values=cbbPalette_2, name = "Type of News") +
-  scale_shape_manual(values=c(15,16,17),"Type of News") +
-  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=16),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=16),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  ylim(-0.1,0.3) +
-  scale_x_continuous("Study Number\n",breaks=c(1,2,3,4,5),labels=rev(c('Study 1',
-                                                                       'Study 2',
-                                                                       'Study 3',
-                                                                       'Study 4',
-                                                                       'Study 5')),limits=c(0.2,5.8)) +
-  coord_flip()
-
-
-ggsave('./Figures/Fig_1A_True_Dummy.png',height=16,width=18,units='cm')
-ggsave('./Figures/Fig_1A_True_Dummy.pdf',height=16,width=18,units='cm')
-
 d_matrix_2 <- d_matrix
 
 fig_4b <- ggplot(data = d_matrix_2, aes(x = x, y = Coefficients)) +
@@ -2375,19 +2120,13 @@ fig_4b <- ggplot(data = d_matrix_2, aes(x = x, y = Coefficients)) +
   coord_flip()
 
 
-
-
-
-
-
-
 d_matrix$x <- NULL
 
 write.csv(d_matrix,'./source_data/fig_4b_source_data.csv')
 
 ################################################################################################################
 
-################################# Figure 4c: Types_Fig_1A_True_Dummy.png #######################################
+################################# Figure 4c ####################################################################
 
 ################################################################################################################
 
@@ -2617,42 +2356,11 @@ d_matrix <- d_matrix %>% arrange(Coef_names)
 #Create order in figure:
 d_matrix$x <- c(2.2,2,1.8,1.2,1,0.8)
 
-#Produce figure:
-ggplot(data = d_matrix, aes(x = x, y = Coefficients)) +
-  geom_hline(aes(yintercept = 0), color = "gray",
-             linetype = 2, size = 1.2) +
-  geom_point(aes(color = Study, shape=Study),size=3.5) +
-  geom_linerange(aes(min = CI_Lower, 
-                     max = CI_Upper, 
-                     color = Study),
-                 size=2) +
-  scale_color_manual(values=cbbPalette_2, name = "Type of News") +
-  scale_shape_manual(values=c(15,16,17),"Type of News") +
-  ylab("\n The Effect of Searching Online\n on Probability of Rating News as True") +
-  theme_classic() +
-  theme(axis.title.x = element_text(size=16),
-        axis.text.x  = element_text(size=12),
-        axis.title.y = element_text(size=16),
-        axis.text.y  = element_text(size=12),
-        plot.title = element_text(size = 12),
-        legend.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        title =element_text(size=12, face='bold')) +
-  ylim(-0.1,0.25) +
-  scale_x_continuous("Study Type\n",breaks=c(1,2),labels=rev(c('Between',
-                                                               'Within')),limits=c(0,3)) +
-  coord_flip()
-
-
-ggsave('./Figures/Types_Fig_1A_True_Dummy.png',height=16,width=18,units='cm')
-ggsave('./Figures/Types_Fig_1A_True_Dummy.pdf',height=16,width=18,units='cm')
-
-d_matrix_3 <- d_matrix
-
 d_matrix$x <- NULL
 write.csv(d_matrix,'./source_data/fig_4c_source_data.csv')
 
-
+#Produce figure:
+d_matrix_3 <- d_matrix
 
 fig_4c <- ggplot(data = d_matrix_3, aes(x = x, y = Coefficients)) +
   geom_hline(aes(yintercept = 0), color = "gray",
@@ -2682,7 +2390,7 @@ fig_4c <- ggplot(data = d_matrix_3, aes(x = x, y = Coefficients)) +
 
 
 
-
+########## Comparative Statistics ##############
 
 wthn_T_M_studies$Mainstream <- 1
 wthn_T_LQ_studies$Mainstream <- 0
@@ -2702,1275 +2410,6 @@ btwn_T_stud <- rbind(btwn_T_M_studies,btwn_T_LQ_studies)
 
 
 btwn_T_stud_results_1 = feols(True_Dummy ~ Treat_Search*Mainstream + Age + Dummy_Congruence + Education_Score +  Gender + Income_Score, data = btwn_T_stud)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-############################################## Balance Tables ################################################
-
-
-###############################################################################################################
-
-################################################## Table 1 ####################################################
-
-###############################################################################################################
-
-#Pull in this data: Search Experiment 1: Study 1:
-Misl_False_Search <- read.csv('./Data/Search_Exp_Misl_False.csv')
-
-#Select variables of interest:
-Model_Data_7 <- Misl_False_Search %>% select(Treat_Search,Education_Score,Age,Gender,Income_Score,Ideology_Score,Article_day,ResponseId)
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
-
-#Remove NA values:
-Model_Data_7 = na.omit(Model_Data_7)
-
-
-Model_Data_7 <- Model_Data_7 %>% select(Education_Score,Age,Gender,Income_Score,Ideology_Score,ResponseId,Treat_Search)
-
-Control_Data <- Model_Data_7 %>% filter(Treat_Search == 0)
-Treatment_Data <- Model_Data_7 %>% filter(Treat_Search == 1)
-
-Control_Data_Rs <- unique(Control_Data)
-Treatment_Data_Rs <- unique(Treatment_Data)
-
-Model_Data_7 <- rbind(Control_Data_Rs,Treatment_Data_Rs)
-
-#Education:
-Educ_C <- round(mean(Control_Data_Rs$Education_Score),2)
-Educ_T <- round(mean(Treatment_Data_Rs$Education_Score),2)
-Diff_Educ <- round((Educ_T - Educ_C),2)
-
-Model_Educ <- coeftest(lm(Education_Score ~ Treat_Search,data=Model_Data_7))
-Educ_P <- Model_Educ[2,4]
-
-Educ_Stars <- ''
-if(Educ_P < 0.05){
-  Educ_Stars <- '*'
-  if(Educ_P < 0.01){
-    Educ_Stars <- '**'
-    if(Educ_P < 0.001){
-      Educ_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Educ <- paste0(as.character(Diff_Educ),Educ_Stars)
-
-
-#Age:
-Age_C <- round(mean(Control_Data_Rs$Age),2)
-Age_T <- round(mean(Treatment_Data_Rs$Age),2)
-Diff_Age <- round((Age_T - Age_C),2)
-
-Model_Age <- coeftest(lm(Age ~ Treat_Search,data=Model_Data_7))
-Age_P <- Model_Age[2,4]
-
-Age_Stars <- ''
-if(Age_P < 0.05){
-  Age_Stars <- '*'
-  if(Age_P < 0.01){
-    Age_Stars <- '**'
-    if(Age_P < 0.001){
-      Age_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Age <- paste0(as.character(Diff_Age),Age_Stars)
-
-
-#Gender:
-Gender_C <- round(mean(Control_Data_Rs$Gender),2)
-Gender_T <- round(mean(Treatment_Data_Rs$Gender),2)
-Diff_Gender <- round((Gender_T - Gender_C),2)
-
-Model_Gender <- coeftest(lm(Gender ~ Treat_Search,data=Model_Data_7))
-Gender_P <- Model_Gender[2,4]
-
-Gender_Stars <- ''
-if(Gender_P < 0.05){
-  Gender_Stars <- '*'
-  if(Gender_P < 0.01){
-    Gender_Stars <- '**'
-    if(Gender_P < 0.001){
-      Gender_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Gender <- paste0(as.character(Diff_Gender),Gender_Stars)
-
-
-#Income:
-Income_C <- round(mean(Control_Data_Rs$Income_Score),2)
-Income_T <- round(mean(Treatment_Data_Rs$Income_Score),2)
-Diff_Income <- round((Income_T - Income_C),2)
-
-Model_Income <- coeftest(lm(Income_Score ~ Treat_Search,data=Model_Data_7))
-Income_P <- Model_Income[2,4]
-
-Income_Stars <- ''
-if(Income_P < 0.05){
-  Income_Stars <- '*'
-  if(Income_P < 0.01){
-    Income_Stars <- '**'
-    if(Income_P < 0.001){
-      Income_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Income <- paste0(as.character(Diff_Income),Income_Stars)
-
-
-#Ideology:
-Ideology_C <- round(mean(Control_Data_Rs$Ideology_Score),2)
-Ideology_T <- round(mean(Treatment_Data_Rs$Ideology_Score),2)
-Diff_Ideology <- round((Ideology_T - Ideology_C),2)
-
-Model_Ideology <- coeftest(lm(Ideology_Score ~ Treat_Search,data=Model_Data_7))
-Ideology_P <- Model_Ideology[2,4]
-
-Ideology_Stars <- ''
-if(Ideology_P < 0.05){
-  Ideology_Stars <- '*'
-  if(Ideology_P < 0.01){
-    Ideology_Stars <- '**'
-    if(Ideology_P < 0.001){
-      Ideology_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Ideology <- paste0(as.character(Diff_Ideology),Ideology_Stars)
-
-
-Balance_T <- matrix(c('Education',Educ_T,Educ_C,Diff_Educ,
-                      'Age',Age_T,Age_C,Diff_Age,
-                      'Gender',Gender_T,Gender_C,Diff_Gender,
-                      'Income',Income_T,Income_C,Diff_Income,
-                      'Ideology',Ideology_T,Ideology_C,Diff_Ideology),byrow=T,ncol=4)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|","p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Average (Treatment)','Average (Control)','Difference')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{3}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_1.txt')
-
-###############################################################################################################
-
-################################################## Table 2 ####################################################
-
-###############################################################################################################
-
-
-#Pull in this data:
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-
-Study_2_Ideo <- read.csv('./Data/Study_2_Respondent_Ideo.csv')
-
-Data_Bef_Aft$ResponseId <- as.character(Data_Bef_Aft$ResponseId)
-Study_2_Ideo$ResponseId <- as.character(Study_2_Ideo$ResponseId)
-
-Study_2_Ideo <- unique(Study_2_Ideo)
-
-
-Data_Bef_Aft <- merge(Data_Bef_Aft,Study_2_Ideo,by='ResponseId')
-
-
-
-#Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft %>% select(Education_Score,Age,Gender,Income_Score,Ideology_Score,Article_day,ResponseId)
-
-Model_Data_7 <- unique(Model_Data_7)
-
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
-Model_Data_7$Age <- Model_Data_7$Age*10
-
-
-#Education:
-Educ_M <- round(mean(Model_Data_7$Education_Score),2)
-Educ_sd <- round(sd(Model_Data_7$Education_Score),2)
-
-#Age:
-Age_M <- round(mean(Model_Data_7$Age,na.rm=T),2)
-Age_sd <- round(sd(Model_Data_7$Age,na.rm=T),2)
-
-#Age:
-Income_M <- round(mean(Model_Data_7$Income_Score),2)
-Income_sd <- round(sd(Model_Data_7$Income_Score),2)
-
-#Gender:
-Gender_M <- round(mean(Model_Data_7$Gender,na.rm = T),2)
-Gender_sd <- round(sd(Model_Data_7$Gender,na.rm = T),2)
-
-#Ideology:
-Ideology_M <- round(mean(Model_Data_7$Ideology_Score,na.rm = T),2)
-Ideology_sd <- round(sd(Model_Data_7$Ideology_Score,na.rm = T),2)
-
-
-
-Balance_T <- matrix(c('Education',Educ_M,Educ_sd,
-                      'Age',Age_M,Age_sd,
-                      'Gender',Gender_M,Gender_sd,
-                      'Income',Income_M,Income_sd,
-                      'Ideology',Ideology_M,Ideology_sd),byrow=T,ncol=3)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Mean','Standard \\newline Deviation')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_2.txt')
-
-
-###############################################################################################################
-
-################################################## Table 3 ####################################################
-
-###############################################################################################################
-
-#Read in sources in the google search results for false/misleading articels in Study 1:
-Latency_Data <- read.csv('./Data/Latency_FC_Data.csv')
-Latency_Survey <- read.csv('./Data/Latency_Control_Survey.csv')
-Latency_Survey <- Latency_Survey %>% mutate(Article_day = paste0(day,sep='_',Article))
-Latency_Survey <- Latency_Survey %>% select(Evaluation,Likert_Evaluation,True_Likert_After_Info,Evaluation_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-
-Latency_Survey$Gender <- as.character(Latency_Survey$Gender)
-Latency_Survey$Gender <- ifelse(Latency_Survey$Gender == 'Female',1,0)
-
-Latency_Survey$True_Likert_After_Info <- as.character(Latency_Survey$True_Likert_After_Info)
-Latency_Survey <- Latency_Survey %>% filter(True_Likert_After_Info != 'not asked')
-Latency_Survey$True_Likert_After_Info <- substr(Latency_Survey$True_Likert_After_Info, start = 1, stop = 2)
-Latency_Survey$True_Likert_After_Info <- as.numeric(Latency_Survey$True_Likert_After_Info)
-
-Latency_Survey$Likert_Evaluation <- as.character(Latency_Survey$Likert_Evaluation)
-Latency_Survey$Likert_Evaluation <- substr(Latency_Survey$Likert_Evaluation, start = 1, stop = 2)
-Latency_Survey$Likert_Evaluation <- as.numeric(Latency_Survey$Likert_Evaluation)
-
-Latency_Survey$Evaluation <- as.character(Latency_Survey$Evaluation)
-Latency_Survey$Evaluation_After_Info <- as.character(Latency_Survey$Evaluation_After_Info)
-Latency_Survey$Evaluation <- substr(Latency_Survey$Evaluation, start = 1, stop = 4)
-Latency_Survey$Evaluation_After_Info <- substr(Latency_Survey$Evaluation_After_Info, start = 1, stop = 4)
-
-Latency_Survey$True_Dummy <- ifelse(Latency_Survey$Evaluation == 'True',1,0)
-Latency_Survey$True_Dummy_After <- ifelse(Latency_Survey$Evaluation_After_Info == 'True',1,0)
-
-Latency_Survey$Duration <- Latency_Survey$Duration/600
-Latency_Survey$Age <- ifelse(Latency_Survey$Age > 85,NA,Latency_Survey$Age)
-
-Data_Bef_Aft <- read.csv('./Data/Data_Bef_Aft_Misl_False.csv')
-Data_Bef_Aft$Article_day <- as.character(Data_Bef_Aft$Article_day)
-
-Article_Days <- unique(Data_Bef_Aft$Article_day)
-
-
-Latency_Survey <- Latency_Survey %>% filter(Article_day %in% Article_Days)
-
-
-After_Evaluation <- Latency_Survey %>% select(True_Dummy_After,True_Likert_After_Info,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-colnames(After_Evaluation)[1] <- 'True_Dummy'
-colnames(After_Evaluation)[2] <- 'Likert_Evaluation'
-Before_Evaluation <- Latency_Survey %>% select(True_Dummy,Likert_Evaluation,Age,Dig_Lit_Avg,Income_Score,CRT_Score,Familiar_Story,Education_Score,Duration,Article_day,Ideology_Score,Gender,ResponseId)
-
-After_Evaluation$Treatment <- 1
-Before_Evaluation$Treatment <- 0
-
-Latency_Search <- rbind(Before_Evaluation,After_Evaluation)
-
-
-Model_Data_7 <- Latency_Search
-
-Model_Data_7 <- Model_Data_7 %>% select(Education_Score,Age,Gender,Income_Score,Ideology_Score,ResponseId)
-Model_Data_7 <- unique(Model_Data_7)
-
-#Education:
-Educ_M <- round(mean(Model_Data_7$Education_Score),2)
-Educ_sd <- round(sd(Model_Data_7$Education_Score),2)
-
-#Age:
-Age_M <- round(mean(Model_Data_7$Age,na.rm=T),2)
-Age_sd <- round(sd(Model_Data_7$Age,na.rm=T),2)
-
-#Age:
-Income_M <- round(mean(Model_Data_7$Income_Score),2)
-Income_sd <- round(sd(Model_Data_7$Income_Score),2)
-
-#Gender:
-Gender_M <- round(mean(Model_Data_7$Gender),2)
-Gender_sd <- round(sd(Model_Data_7$Gender),2)
-
-#Ideology:
-Ideology_M <- round(mean(Model_Data_7$Ideology_Score,na.rm=T),2)
-Ideology_sd <- round(sd(Model_Data_7$Ideology_Score,na.rm=T),2)
-
-
-
-Balance_T <- matrix(c('Education',Educ_M,Educ_sd,
-                      'Age',Age_M,Age_sd,
-                      'Gender',Gender_M,Gender_sd,
-                      'Income',Income_M,Income_sd,
-                      'Ideology',Ideology_M,Ideology_sd),byrow=T,ncol=3)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Mean','Standard \\newline Deviation')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_3.txt')
-
-
-
-###############################################################################################################
-
-################################################## Table 4 ####################################################
-
-###############################################################################################################
-
-
-Data_Bef_Aft <- read.csv('./Data/Experiment_2_Study_2_Misl_False.csv')
-
-Study_4_Ideo <- read.csv('./Data/Study_4_Respondent_Ideo.csv')
-
-Data_Bef_Aft$ResponseId <- as.character(Data_Bef_Aft$ResponseId)
-Study_4_Ideo$ResponseId <- as.character(Study_4_Ideo$ResponseId)
-
-
-Data_Bef_Aft <- merge(Data_Bef_Aft,Study_4_Ideo,by='ResponseId')
-
-
-#Select variables of interest:
-Model_Data_7 <- Data_Bef_Aft %>% select(Education_Score,Age,Gender,Income_Score,Ideology_Score,ResponseId)
-
-Model_Data_7 <- unique(Model_Data_7)
-
-Model_Data_7$Gender <- ifelse(Model_Data_7$Gender == 'Female',1,0)
-
-
-#Education:
-Educ_M <- round(mean(Model_Data_7$Education_Score),2)
-Educ_sd <- round(sd(Model_Data_7$Education_Score),2)
-
-#Age:
-Age_M <- round(mean(Model_Data_7$Age,na.rm=T),2)
-Age_sd <- round(sd(Model_Data_7$Age,na.rm=T),2)
-
-#Age:
-Income_M <- round(mean(Model_Data_7$Income_Score),2)
-Income_sd <- round(sd(Model_Data_7$Income_Score),2)
-
-#Gender:
-Gender_M <- round(mean(Model_Data_7$Gender,na.rm=T),2)
-Gender_sd <- round(sd(Model_Data_7$Gender,na.rm=T),2)
-
-#Ideology:
-Ideology_M <- round(mean(Model_Data_7$Ideology_Score,na.rm=T),2)
-Ideology_sd <- round(sd(Model_Data_7$Ideology_Score,na.rm=T),2)
-
-
-
-Balance_T <- matrix(c('Education',Educ_M,Educ_sd,
-                      'Age',Age_M,Age_sd,
-                      'Gender',Gender_M,Gender_sd,
-                      'Income',Income_M,Income_sd,
-                      'Ideology',Ideology_M,Ideology_sd),byrow=T,ncol=3)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Mean','Standard \\newline Deviation')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_4.txt')
-
-
-
-###############################################################################################################
-
-################################################## Table 5 ####################################################
-
-###############################################################################################################
-
-Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
-
-#Read CSV (Treatment):
-Treatment_Data <- read.csv('./Data/Treatment_Data_Study_5.csv')
-Treatment_Data$Link_1 <- NULL
-Treatment_Data$Link_2 <- NULL
-
-All_Data <- rbind(Treatment_Data,Control_Data)
-FM_Data <- All_Data %>% filter(FC_Eval == 'FM')
-
-#Select variables of interest:
-Model_Data_7 <- FM_Data %>% select(Treatment,Education_Score,Age,Gender,Income_Score,Ideology_Score,Article_day,ResponseId)
-
-#Remove NA values:
-Model_Data_7 = na.omit(Model_Data_7)
-
-
-Model_Data_7 <- Model_Data_7 %>% select(Education_Score,Age,Gender,Income_Score,Ideology_Score,ResponseId,Treatment)
-
-Control_Data <- Model_Data_7 %>% filter(Treatment == 0)
-Treatment_Data <- Model_Data_7 %>% filter(Treatment == 1)
-
-Control_Data_Rs <- unique(Control_Data)
-Treatment_Data_Rs <- unique(Treatment_Data)
-
-Model_Data_7 <- rbind(Control_Data_Rs,Treatment_Data_Rs)
-
-#Education:
-Educ_C <- round(mean(Control_Data_Rs$Education_Score),2)
-Educ_T <- round(mean(Treatment_Data_Rs$Education_Score),2)
-Diff_Educ <- round((Educ_T - Educ_C),2)
-
-Model_Educ <- coeftest(lm(Education_Score ~ Treatment,data=Model_Data_7))
-Educ_P <- Model_Educ[2,4]
-
-Educ_Stars <- ''
-if(Educ_P < 0.05){
-  Educ_Stars <- '*'
-  if(Educ_P < 0.01){
-    Educ_Stars <- '**'
-    if(Educ_P < 0.001){
-      Educ_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Educ <- paste0(as.character(Diff_Educ),Educ_Stars)
-
-
-#Age:
-Age_C <- round(mean(Control_Data_Rs$Age),2)
-Age_T <- round(mean(Treatment_Data_Rs$Age),2)
-Diff_Age <- round((Age_T - Age_C),2)
-
-Model_Age <- coeftest(lm(Age ~ Treatment,data=Model_Data_7))
-Age_P <- Model_Age[2,4]
-
-Age_Stars <- ''
-if(Age_P < 0.05){
-  Age_Stars <- '*'
-  if(Age_P < 0.01){
-    Age_Stars <- '**'
-    if(Age_P < 0.001){
-      Age_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Age <- paste0(as.character(Diff_Age),Age_Stars)
-
-
-#Gender:
-Gender_C <- round(mean(Control_Data_Rs$Gender),2)
-Gender_T <- round(mean(Treatment_Data_Rs$Gender),2)
-Diff_Gender <- round((Gender_T - Gender_C),2)
-
-Model_Gender <- coeftest(lm(Gender ~ Treatment,data=Model_Data_7))
-Gender_P <- Model_Gender[2,4]
-
-Gender_Stars <- ''
-if(Gender_P < 0.05){
-  Gender_Stars <- '*'
-  if(Gender_P < 0.01){
-    Gender_Stars <- '**'
-    if(Gender_P < 0.001){
-      Gender_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Gender <- paste0(as.character(Diff_Gender),Gender_Stars)
-
-
-#Income:
-Income_C <- round(mean(Control_Data_Rs$Income_Score),2)
-Income_T <- round(mean(Treatment_Data_Rs$Income_Score),2)
-Diff_Income <- round((Income_T - Income_C),2)
-
-Model_Income <- coeftest(lm(Income_Score ~ Treatment,data=Model_Data_7))
-Income_P <- Model_Income[2,4]
-
-Income_Stars <- ''
-if(Income_P < 0.05){
-  Income_Stars <- '*'
-  if(Income_P < 0.01){
-    Income_Stars <- '**'
-    if(Income_P < 0.001){
-      Income_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Income <- paste0(as.character(Diff_Income),Income_Stars)
-
-
-#Ideology:
-Ideology_C <- round(mean(Control_Data_Rs$Ideology_Score),2)
-Ideology_T <- round(mean(Treatment_Data_Rs$Ideology_Score),2)
-Diff_Ideology <- round((Ideology_T - Ideology_C),2)
-
-Model_Ideology <- coeftest(lm(Ideology_Score ~ Treatment,data=Model_Data_7))
-Ideology_P <- Model_Ideology[2,4]
-
-Ideology_Stars <- ''
-if(Ideology_P < 0.05){
-  Ideology_Stars <- '*'
-  if(Ideology_P < 0.01){
-    Ideology_Stars <- '**'
-    if(Ideology_P < 0.001){
-      Ideology_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Ideology <- paste0(as.character(Diff_Ideology),Ideology_Stars)
-
-
-Balance_T <- matrix(c('Education',Educ_T,Educ_C,Diff_Educ,
-                      'Age',Age_T,Age_C,Diff_Age,
-                      'Gender',Gender_T,Gender_C,Diff_Gender,
-                      'Income',Income_T,Income_C,Diff_Income,
-                      'Ideology',Ideology_T,Ideology_C,Diff_Ideology),byrow=T,ncol=4)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|","p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Average (Treatment)','Average (Control)','Difference')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_5.txt')
-
-
-###############################################################################################################
-
-################################################## Table 6 ####################################################
-
-###############################################################################################################
-
-
-#Ideological Perspective of Articles:
-FC_Ideo_Data <- read.csv('./Data/FC_Ideo_Data.csv')
-FC_Ideo_Data$X <- NULL
-
-#Pull in treatment data for Study 5:
-Treatment_Data <- read.csv('./Data/Treatment_Data_Study_5.csv')
-Treatment_Data$Link_1 <- NULL
-Treatment_Data$Link_2 <- NULL
-
-Study_5_treat_data <- read.csv('./Data/Study_5_treat_data.csv')
-
-
-#Merge datasets:
-Treatment_Data <- merge(Treatment_Data,FC_Ideo_Data,by='Article_day')
-
-T_Data <- Treatment_Data %>% filter(FC_Eval == 'FM')
-
-Installed_Treatment <- Study_5_treat_data %>% select(ResponseId,Article_day)
-
-Full_Treatment_Data <- T_Data
-GS_Treatment_Data <- Study_5_treat_data
-
-Installed_Treatment_Data <- merge(T_Data,Installed_Treatment,by=c('ResponseId','Article_day'))
-
-Installed_Treatment_Data <- Installed_Treatment_Data %>% select(ResponseId,Article_day)
-Full_Treatment_Data <- Full_Treatment_Data %>% select(ResponseId,Article_day)
-
-
-Installed_Treatment_Data$ResponseId <- as.character(Installed_Treatment_Data$ResponseId)
-Installed_Treatment_Data$Article_day <- as.character(Installed_Treatment_Data$Article_day)
-
-Full_Treatment_Data$ResponseId <- as.character(Full_Treatment_Data$ResponseId)
-Full_Treatment_Data$Article_day <- as.character(Full_Treatment_Data$Article_day)
-
-#Create non-compliance group:
-
-Not_Installed_Treatment_Data <- setdiff(Full_Treatment_Data,Installed_Treatment_Data)
-
-
-Installed_Treatment_Data <- merge(T_Data,Installed_Treatment_Data,by=c('ResponseId','Article_day'))
-
-Not_Installed_Treatment_Data <- merge(T_Data,Not_Installed_Treatment_Data,by=c('ResponseId','Article_day'))
-
-nrow(Not_Installed_Treatment_Data)
-nrow(Installed_Treatment_Data)
-
-Not_Installed_Treatment_Data <- Not_Installed_Treatment_Data %>% ungroup() %>% select(ResponseId,Age,Gender,Income_Score,Education_Score,Ideology_Score,Dig_Lit_Score)
-Installed_Treatment_Data <- Installed_Treatment_Data %>% select(ResponseId,Age,Gender,Income_Score,Education_Score,Ideology_Score,Dig_Lit_Score)
-
-Not_Installed_Treatment_Data$Installed <- 0
-Installed_Treatment_Data$Installed <- 1
-
-Full_data <- rbind(Not_Installed_Treatment_Data,Installed_Treatment_Data)
-
-Full_data <- na.omit(Full_data)
-
-#Education:
-Educ_C <- round(mean(Not_Installed_Treatment_Data$Education_Score),2)
-Educ_T <- round(mean(Installed_Treatment_Data$Education_Score),2)
-Diff_Educ <- round((Educ_T - Educ_C),2)
-
-Model_Educ <- coeftest(lm(Education_Score ~ Installed,data=Full_data))
-Educ_P <- Model_Educ[2,4]
-
-Educ_Stars <- ''
-if(Educ_P < 0.05){
-  Educ_Stars <- '*'
-  if(Educ_P < 0.01){
-    Educ_Stars <- '**'
-    if(Educ_P < 0.001){
-      Educ_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Educ <- paste0(as.character(Diff_Educ),Educ_Stars)
-
-
-#Age:
-Age_C <- round(mean(Not_Installed_Treatment_Data$Age),2)
-Age_T <- round(mean(Installed_Treatment_Data$Age),2)
-Diff_Age <- round((Age_T - Age_C),2)
-
-Model_Age <- coeftest(lm(Age ~ Installed,data=Full_data))
-Age_P <- Model_Age[2,4]
-
-Age_Stars <- ''
-if(Age_P < 0.05){
-  Age_Stars <- '*'
-  if(Age_P < 0.01){
-    Age_Stars <- '**'
-    if(Age_P < 0.001){
-      Age_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Age <- paste0(as.character(Diff_Age),Age_Stars)
-
-
-#Gender:
-Gender_C <- round(mean(Not_Installed_Treatment_Data$Gender),2)
-Gender_T <- round(mean(Installed_Treatment_Data$Gender),2)
-Diff_Gender <- round((Gender_T - Gender_C),2)
-
-Model_Gender <- coeftest(lm(Gender ~ Installed,data=Full_data))
-Gender_P <- Model_Gender[2,4]
-
-Gender_Stars <- ''
-if(Gender_P < 0.05){
-  Gender_Stars <- '*'
-  if(Gender_P < 0.01){
-    Gender_Stars <- '**'
-    if(Gender_P < 0.001){
-      Gender_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Gender <- paste0(as.character(Diff_Gender),Gender_Stars)
-
-
-#Income:
-Income_C <- round(mean(Not_Installed_Treatment_Data$Income_Score),2)
-Income_T <- round(mean(Installed_Treatment_Data$Income_Score),2)
-Diff_Income <- round((Income_T - Income_C),2)
-
-Model_Income <- coeftest(lm(Income_Score ~ Installed,data=Full_data))
-Income_P <- Model_Income[2,4]
-
-Income_Stars <- ''
-if(Income_P < 0.05){
-  Income_Stars <- '*'
-  if(Income_P < 0.01){
-    Income_Stars <- '**'
-    if(Income_P < 0.001){
-      Income_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Income <- paste0(as.character(Diff_Income),Income_Stars)
-
-
-#Ideology:
-Ideology_C <- round(mean(Not_Installed_Treatment_Data$Ideology_Score,na.rm=T),2)
-Ideology_T <- round(mean(Installed_Treatment_Data$Ideology_Score,na.rm=T),2)
-Diff_Ideology <- round((Ideology_T - Ideology_C),2)
-
-Mod_Ideo <- lm(Ideology_Score ~ Installed,data=Full_data)
-
-Model_Ideology <- coeftest(lm(Ideology_Score ~ Installed,data=Full_data))
-Ideology_P <- Model_Ideology[2,4]
-
-Ideology_Stars <- ''
-if(Ideology_P < 0.05){
-  Ideology_Stars <- '*'
-  if(Ideology_P < 0.01){
-    Ideology_Stars <- '**'
-    if(Ideology_P < 0.001){
-      Ideology_Stars <- '***'
-    }
-  }
-} 
-
-#F-statistic
-glm.0 <- glm(Ideology_Score ~ 1,data=Full_data)
-Results <- anova(Mod_Ideo, glm.0, test="F")
-F_Tab_1_1 <- Results$F[2]
-
-
-
-Diff_Ideology <- paste0(as.character(Diff_Ideology),Ideology_Stars)
-
-
-#Ideology:
-Digital_C <- round(mean(Not_Installed_Treatment_Data$Dig_Lit_Score,na.rm=T),2)
-Digital_T <- round(mean(Installed_Treatment_Data$Dig_Lit_Score,na.rm=T),2)
-Diff_Digital <- round((Digital_T - Digital_C),2)
-
-Model_Digital <- coeftest(lm(Dig_Lit_Score ~ Installed,data=Full_data))
-Digital_P <- Model_Digital[2,4]
-
-Digital_Stars <- ''
-if(Digital_P < 0.05){
-  Digital_Stars <- '*'
-  if(Digital_P < 0.01){
-    Digital_Stars <- '**'
-    if(Digital_P < 0.001){
-      Digital_Stars <- '***'
-    }
-  }
-} 
-
-
-Diff_Digital <- paste0(as.character(Diff_Digital),Digital_Stars)
-
-
-Balance_T <- matrix(c('Education',Educ_T,Educ_C,Diff_Educ,
-                      'Age',Age_T,Age_C,Diff_Age,
-                      'Gender',Gender_T,Gender_C,Diff_Gender,
-                      'Income',Income_T,Income_C,Diff_Income,
-                      'Ideology',Ideology_T,Ideology_C,Diff_Ideology,
-                      'Digital Literacy',Digital_T,Digital_C,Diff_Digital),byrow=T,ncol=4)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|","p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Average (Complier)','Average (Non-Complier)','Difference')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_6.txt')
-
-#############################################################################################################
-
-############################################## Table 7 ######################################################
-
-#############################################################################################################
-
-#Control:
-Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
-Control_Data <- Control_Data %>% filter(FC_Eval == 'FM')
-Control_Data$Article_day <- as.character(Control_Data$Article_day)
-Control_Data$ResponseId <- as.character(Control_Data$ResponseId)
-
-#Installed:
-Control_Installed <- read.csv('./Data/output_Control_Survey_2.csv')
-Control_Installed$Response_id <- as.character(Control_Installed$Response_id)
-Control_Installed$Article_day <- as.character(Control_Installed$Article_day)
-Control_Installed <- Control_Installed %>% select(Response_id,Article_day)
-Control_Installed <- unique(Control_Installed)
-Control_Data <- merge(Control_Data,Control_Installed,by.x=c('ResponseId','Article_day'),by.y=c('Response_id','Article_day'))
-Control_Left <- Control_Data
-
-
-Control_Data <- read.csv('./Data/Control_Data_Study_5.csv')
-Control_Data <- Control_Data %>% filter(FC_Eval == 'FM')
-
-Not_Installed_Control_Data <- subset(Control_Data,!(ResponseId%in%Control_Left$ResponseId))
-Installed_Control_Data <- subset(Control_Data,(ResponseId%in%Control_Left$ResponseId))
-
-Not_Installed_Control_Data <- Not_Installed_Control_Data %>% select(ResponseId,Age,Gender,Income_Score,Education_Score,Ideology_Score,Dig_Lit_Score)
-Installed_Control_Data <- Installed_Control_Data %>% select(ResponseId,Age,Gender,Income_Score,Education_Score,Ideology_Score,Dig_Lit_Score)
-
-
-
-Not_Installed_Control_Data$Installed <- 0
-Installed_Control_Data$Installed <- 1
-
-Full_data <- rbind(Not_Installed_Control_Data,Installed_Control_Data)
-
-Full_data <- na.omit(Full_data)
-
-#Education:
-Educ_C <- round(mean(Not_Installed_Control_Data$Education_Score),2)
-Educ_T <- round(mean(Installed_Control_Data$Education_Score),2)
-Diff_Educ <- round((Educ_T - Educ_C),2)
-
-Model_Educ <- coeftest(lm(Education_Score ~ Installed,data=Full_data))
-Educ_P <- Model_Educ[2,4]
-
-Educ_Stars <- ''
-if(Educ_P < 0.05){
-  Educ_Stars <- '*'
-  if(Educ_P < 0.01){
-    Educ_Stars <- '**'
-    if(Educ_P < 0.001){
-      Educ_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Educ <- paste0(as.character(Diff_Educ),Educ_Stars)
-
-
-#Age:
-Age_C <- round(mean(Not_Installed_Control_Data$Age),2)
-Age_T <- round(mean(Installed_Control_Data$Age),2)
-Diff_Age <- round((Age_T - Age_C),2)
-
-Model_Age <- coeftest(lm(Age ~ Installed,data=Full_data))
-Age_P <- Model_Age[2,4]
-
-Age_Stars <- ''
-if(Age_P < 0.05){
-  Age_Stars <- '*'
-  if(Age_P < 0.01){
-    Age_Stars <- '**'
-    if(Age_P < 0.001){
-      Age_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Age <- paste0(as.character(Diff_Age),Age_Stars)
-
-
-#Gender:
-Gender_C <- round(mean(Not_Installed_Control_Data$Gender),2)
-Gender_T <- round(mean(Installed_Control_Data$Gender),2)
-Diff_Gender <- round((Gender_T - Gender_C),2)
-
-Model_Gender <- coeftest(lm(Gender ~ Installed,data=Full_data))
-Gender_P <- Model_Gender[2,4]
-
-Gender_Stars <- ''
-if(Gender_P < 0.05){
-  Gender_Stars <- '*'
-  if(Gender_P < 0.01){
-    Gender_Stars <- '**'
-    if(Gender_P < 0.001){
-      Gender_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Gender <- paste0(as.character(Diff_Gender),Gender_Stars)
-
-
-#Income:
-Income_C <- round(mean(Not_Installed_Control_Data$Income_Score),2)
-Income_T <- round(mean(Installed_Control_Data$Income_Score),2)
-Diff_Income <- round((Income_T - Income_C),2)
-
-Model_Income <- coeftest(lm(Income_Score ~ Installed,data=Full_data))
-Income_P <- Model_Income[2,4]
-
-Income_Stars <- ''
-if(Income_P < 0.05){
-  Income_Stars <- '*'
-  if(Income_P < 0.01){
-    Income_Stars <- '**'
-    if(Income_P < 0.001){
-      Income_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Income <- paste0(as.character(Diff_Income),Income_Stars)
-
-
-#Ideology:
-Ideology_C <- round(mean(Not_Installed_Control_Data$Ideology_Score,na.rm=T),2)
-Ideology_T <- round(mean(Installed_Control_Data$Ideology_Score,na.rm=T),2)
-Diff_Ideology <- round((Ideology_T - Ideology_C),2)
-
-Model_Ideology <- coeftest(lm(Ideology_Score ~ Installed,data=Full_data))
-Ideology_P <- Model_Ideology[2,4]
-
-Ideology_Stars <- ''
-if(Ideology_P < 0.05){
-  Ideology_Stars <- '*'
-  if(Ideology_P < 0.01){
-    Ideology_Stars <- '**'
-    if(Ideology_P < 0.001){
-      Ideology_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Ideology <- paste0(as.character(Diff_Ideology),Ideology_Stars)
-
-
-#Ideology:
-Digital_C <- round(mean(Not_Installed_Control_Data$Dig_Lit_Score,na.rm=T),2)
-Digital_T <- round(mean(Installed_Control_Data$Dig_Lit_Score,na.rm=T),2)
-Diff_Digital <- round((Digital_T - Digital_C),2)
-
-Model_Digital <- coeftest(lm(Dig_Lit_Score ~ Installed,data=Full_data))
-Digital_P <- Model_Digital[2,4]
-
-Digital_Stars <- ''
-if(Digital_P < 0.05){
-  Digital_Stars <- '*'
-  if(Digital_P < 0.01){
-    Digital_Stars <- '**'
-    if(Digital_P < 0.001){
-      Digital_Stars <- '***'
-    }
-  }
-} 
-
-
-Diff_Digital <- paste0(as.character(Diff_Digital),Digital_Stars)
-
-
-Balance_T <- matrix(c('Education',Educ_T,Educ_C,Diff_Educ,
-                      'Age',Age_T,Age_C,Diff_Age,
-                      'Gender',Gender_T,Gender_C,Diff_Gender,
-                      'Income',Income_T,Income_C,Diff_Income,
-                      'Ideology',Ideology_T,Ideology_C,Diff_Ideology,
-                      'Digital Literacy',Digital_T,Digital_C,Diff_Digital),byrow=T,ncol=4)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|","p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Average (Complier)','Average (Non-Complier)','Difference')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_7.txt')
-
-
-######################################################################################################
-
-############################################## Table 8 ###############################################
-
-######################################################################################################
-
-Control_Data_Rs <- Installed_Control_Data
-Treatment_Data_Rs <- Installed_Treatment_Data
-
-Control_Data_Rs$Treatment <- 0
-Treatment_Data_Rs$Treatment <- 1
-
-Model_Data_7 <- rbind(Control_Data_Rs,Treatment_Data_Rs)
-
-Model_Data_7 <- na.omit(Model_Data_7)
-
-#Education:
-Educ_C <- round(mean(Control_Data_Rs$Education_Score),2)
-Educ_T <- round(mean(Treatment_Data_Rs$Education_Score),2)
-Diff_Educ <- round((Educ_T - Educ_C),2)
-
-Model_Educ <- coeftest(lm(Education_Score ~ Treatment,data=Model_Data_7))
-Educ_P <- Model_Educ[2,4]
-
-Educ_Stars <- ''
-if(Educ_P < 0.05){
-  Educ_Stars <- '*'
-  if(Educ_P < 0.01){
-    Educ_Stars <- '**'
-    if(Educ_P < 0.001){
-      Educ_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Educ <- paste0(as.character(Diff_Educ),Educ_Stars)
-
-
-#Age:
-Age_C <- round(mean(Control_Data_Rs$Age),2)
-Age_T <- round(mean(Treatment_Data_Rs$Age),2)
-Diff_Age <- round((Age_T - Age_C),2)
-
-Model_Age <- coeftest(lm(Age ~ Treatment,data=Model_Data_7))
-Age_P <- Model_Age[2,4]
-
-Age_Stars <- ''
-if(Age_P < 0.05){
-  Age_Stars <- '*'
-  if(Age_P < 0.01){
-    Age_Stars <- '**'
-    if(Age_P < 0.001){
-      Age_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Age <- paste0(as.character(Diff_Age),Age_Stars)
-
-
-#Gender:
-Gender_C <- round(mean(Control_Data_Rs$Gender),2)
-Gender_T <- round(mean(Treatment_Data_Rs$Gender),2)
-Diff_Gender <- round((Gender_T - Gender_C),2)
-
-Model_Gender <- coeftest(lm(Gender ~ Treatment,data=Model_Data_7))
-Gender_P <- Model_Gender[2,4]
-
-Gender_Stars <- ''
-if(Gender_P < 0.05){
-  Gender_Stars <- '*'
-  if(Gender_P < 0.01){
-    Gender_Stars <- '**'
-    if(Gender_P < 0.001){
-      Gender_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Gender <- paste0(as.character(Diff_Gender),Gender_Stars)
-
-
-#Income:
-Income_C <- round(mean(Control_Data_Rs$Income_Score),2)
-Income_T <- round(mean(Treatment_Data_Rs$Income_Score),2)
-Diff_Income <- round((Income_T - Income_C),2)
-
-Model_Income <- coeftest(lm(Income_Score ~ Treatment,data=Model_Data_7))
-Income_P <- Model_Income[2,4]
-
-Income_Stars <- ''
-if(Income_P < 0.05){
-  Income_Stars <- '*'
-  if(Income_P < 0.01){
-    Income_Stars <- '**'
-    if(Income_P < 0.001){
-      Income_Stars <- '***'
-    }
-  }
-} 
-
-Diff_Income <- paste0(as.character(Diff_Income),Income_Stars)
-
-
-#Ideology:
-Ideology_C <- round(mean(Control_Data_Rs$Ideology_Score),2)
-Ideology_T <- round(mean(Treatment_Data_Rs$Ideology_Score),2)
-Diff_Ideology <- round((Ideology_T - Ideology_C),2)
-
-Model_Ideology <- coeftest(lm(Ideology_Score ~ Treatment,data=Model_Data_7))
-Ideology_P <- Model_Ideology[2,4]
-
-Ideology_Stars <- ''
-if(Ideology_P < 0.05){
-  Ideology_Stars <- '*'
-  if(Ideology_P < 0.01){
-    Ideology_Stars <- '**'
-    if(Ideology_P < 0.001){
-      Ideology_Stars <- '***'
-    }
-  }
-} 
-
-#Ideology:
-Digital_C <- round(mean(Control_Data_Rs$Dig_Lit_Score,na.rm=T),2)
-Digital_T <- round(mean(Treatment_Data_Rs$Dig_Lit_Score,na.rm=T),2)
-Diff_Digital <- round((Digital_T - Digital_C),2)
-
-Model_Digital <- coeftest(lm(Dig_Lit_Score ~ Treatment,data=Model_Data_7))
-Digital_P <- Model_Digital[2,4]
-
-Digital_Stars <- ''
-if(Digital_P < 0.05){
-  Digital_Stars <- '*'
-  if(Digital_P < 0.01){
-    Digital_Stars <- '**'
-    if(Digital_P < 0.001){
-      Digital_Stars <- '***'
-    }
-  }
-} 
-
-
-Diff_Digital <- paste0(as.character(Diff_Digital),Digital_Stars)
-
-
-Balance_T <- matrix(c('Education',Educ_T,Educ_C,Diff_Educ,
-                      'Age',Age_T,Age_C,Diff_Age,
-                      'Gender',Gender_T,Gender_C,Diff_Gender,
-                      'Income',Income_T,Income_C,Diff_Income,
-                      'Ideology',Ideology_T,Ideology_C,Diff_Ideology,
-                      'Digital Literacy',Digital_T,Digital_C,Diff_Digital),byrow=T,ncol=4)
-
-
-xt <- xtable(Balance_T,
-             digits=2,
-             align=c(
-               "|p{1.5cm}|","|p{3cm}|","|p{3cm}|",
-               "p{3cm}|","p{3cm}|"))
-
-colnames(xt) <- c('Demographic','Average (Treatment)','Average (Control)','Difference')
-
-
-comment          <- list()
-comment$pos      <- list()
-comment$pos[[1]] <- c(nrow(Balance_T))
-comment$command  <- c(paste("\\hline \n",  # we`ll replace all default hlines with this and the ones below
-                            '\\multicolumn{4}{l}{\\textsuperscript{***}$p<0.001$, \\textsuperscript{**}$p<0.01$, \\textsuperscript{*}$p<0.05$}',
-                            sep = ""))
-
-
-#Write Table:
-write(print(xt,include.rownames=FALSE,
-            sanitize.colnames.function = identity,
-            add.to.row = comment),
-      file='./Tables/Balance_8.txt')
-
-
-
-
-
-mean(T_Mainstream_Data_Study_1$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
-mean(T_Mainstream_Data_Study_2$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
-mean(T_Mainstream_Data_Study_3$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
-mean(T_Mainstream_Data_Study_4$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
-mean(T_Mainstream_Data_Study_5$True_Dummy[T_Mainstream_Data_Study_1$Treat_Search==0],na.rm=T)
-
-
-writeLines(capture.output(sessionInfo()), "sessionInfo_main.txt")
-
 
 
 ########################### Source Data ##############################
@@ -4190,14 +2629,12 @@ fig_4_sd <- rbind(fig_4_sd,fig_4c_sd)
 write_csv(fig_4_sd,'./source_data/fig_4_source_data.csv')
 
 
+#################### Write Figures ####################################
 
 
+####################### Figure 1 ######################################
 
-#################### Combined Plots ###########################
-
-
-####################### Figure 1 ##############################
-
+#Load library:
 library("ggpubr")
 
 ggarrange(fig_1a, fig_1b,
@@ -4208,8 +2645,7 @@ ggarrange(fig_1a, fig_1b,
 ggsave('./Figures/fig_1.eps',height=8,width=18,units='cm',device="eps")
 
 
-
-
+####################### Figure 2 ######################################
 
 ggarrange(fig_2a, fig_2b, fig_2c, fig_2d,
           labels="auto",
@@ -4219,6 +2655,7 @@ ggarrange(fig_2a, fig_2b, fig_2c, fig_2d,
 
 ggsave('./Figures/fig_2.eps',height=16,width=18,units='cm',device="eps")
 
+####################### Figure 3 ######################################
 
 ggarrange(fig_3a, fig_3b, fig_3c,
           labels="auto",
@@ -4227,7 +2664,7 @@ ggarrange(fig_3a, fig_3b, fig_3c,
 
 ggsave('./Figures/fig_3.eps',height=8,width=18,units='cm',device="eps")
 
-
+####################### Figure 4 ######################################
 
 ggarrange(fig_4a, fig_4b, fig_4c,
           labels="auto",
@@ -4237,13 +2674,8 @@ ggarrange(fig_4a, fig_4b, fig_4c,
 ggsave('./Figures/fig_4.eps',height=8,width=18,units='cm',device="eps")
 
 
-
-
-
-
-
-
-
+########################## Write Output for script ###########################
+writeLines(capture.output(sessionInfo()), "sessionInfo_main.txt")
 
 
 
